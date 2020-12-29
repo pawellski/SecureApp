@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  nginx:
+    build:
+     context: .
+     dockerfile: ./modules/nginx-ssl/Dockerfile
+    ports:
+      - "80:80"
+
+  uwsgi:
+    build:
+     context: .
+     dockerfile: ./modules/uwsgi-flask/Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./modules/uwsgi-flask/app:/var/www/app
