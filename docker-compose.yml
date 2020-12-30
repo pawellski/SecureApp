@@ -6,7 +6,7 @@ services:
      context: .
      dockerfile: ./modules/nginx-ssl/Dockerfile
     ports:
-      - "80:80"
+      - "443:443"
 
   uwsgi:
     build:
