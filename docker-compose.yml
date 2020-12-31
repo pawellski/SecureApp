@@ -17,13 +17,11 @@ services:
     volumes:
       - ./modules/uwsgi-flask/app:/var/www/app
     environment:
-      - MYSQL_USER=$MYSQL_USER
-      - MYSQL_PASSWORD=$MYSQL_PASSWORD
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
 
   mariadb:
     image: mariadb
     logging:
       driver: none
     environment:
-      - MYSQL_USER=$MYSQL_USER
-      - MYSQL_PASSWORD=$MYSQL_PASSWORD
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
