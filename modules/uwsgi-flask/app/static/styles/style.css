@@ -32,3 +32,7 @@ footer {
     height: 46px;
     font-size: 15px;
 }
+
+button {
+    margin-bottom: 20px;
+}
