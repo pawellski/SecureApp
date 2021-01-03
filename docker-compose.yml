@@ -18,6 +18,7 @@ services:
       - ./modules/uwsgi-flask/app:/var/www/app
     environment:
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - PEPPER=$PEPPER
 
   mariadb:
     image: mariadb
