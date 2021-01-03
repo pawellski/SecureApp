@@ -12,8 +12,11 @@ document.addEventListener('DOMContentLoaded', function (event) {
     const SECOND_PASSWORD_ID = "second-password";
     
     let HTTP_STATUS = {OK: 200, CREATED: 201, BAD_REQUEST:400, NOT_FOUND: 404};
-
+    let PASSWORD_STATUS = {0: "bardzo słabe.", 1: "słabe.", 2: "średnie.", 3: "silne.", 4: "bardzo silne."};
     let registrationForm = document.getElementById("signup-form");
+    let passwordField = document.getElementById("password");
+    let meter = document.getElementById("password-strength-meter");
+    let passwordText = document.getElementById("password-strength-text");
     let alertDiv = document.getElementById("signup-alert");
 
     registrationForm.addEventListener("submit", function (event) {
@@ -23,8 +26,9 @@ document.addEventListener('DOMContentLoaded', function (event) {
         let c2 = checkSurname();
         let c3 = checkEmail();
         let c4 = checkLogin();
-        let c5 = checkPasswords();
-        if (c1 == true && c2 == true && c3 == true && c4 == true && c5 == true) {
+        let c5 = checkPassword();
+        let c6 = checkBothPasswords();
+        if (c1 == true && c2 == true && c3 == true && c4 == true && c5 == true && c6 == true) {
             submitRegisterForm();
         }
     });
@@ -60,6 +64,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
     function displayRegisterAlert(response) {
         if (response.registration == "Accept") {
             registrationForm.reset();
+            meter.value = 0;
+            passwordText.innerHTML = "";
             let successAlert = document.createElement("div");
             let successText = document.createTextNode("Zarejestrowano pomyślnie.");
             successAlert.setAttribute("class", "alert alert-success");
@@ -76,6 +82,32 @@ document.addEventListener('DOMContentLoaded', function (event) {
         }
     }
 
+    
+    passwordField.addEventListener("input", function() {
+        let password = passwordField.value;
+        console.log(password);
+        console.log(meter);
+        let entropy = countEntropy(password);
+        let state = 0;
+        if (entropy < 1) {
+            state = 0;
+        } else if (entropy < 2) {
+            state = 1;
+        } else if (entropy < 4) {
+            state = 2;
+        } else if (entropy < 6) {
+            state = 3;
+        } else {
+            state = 4;
+        }
+        meter.value = state;
+        
+        if (password !== "") {
+            passwordText.innerHTML = "Hasło jest " + PASSWORD_STATUS[state];
+        } else {
+            passwordText.innerHTML = "";
+        }
+    });
 
 
     function checkName() {
@@ -152,7 +184,35 @@ document.addEventListener('DOMContentLoaded', function (event) {
         return true;
     }
 
-    function checkPasswords() {
+    function checkPassword() {
+        let password = document.getElementById(PASSWORD_ID);
+        
+        if (password.value.length < 8) {
+            let loginAlert = document.createElement("div");
+            let warningText = document.createTextNode("Hasło musi składać się przynajmniej z 8 znaków.");
+            loginAlert.setAttribute("class", "alert alert-danger");
+            loginAlert.setAttribute("role", "alert");
+            loginAlert.appendChild(warningText);
+            alertDiv.appendChild(loginAlert);
+            return false;
+        }
+
+        if (password.value.match(/[a-z]+/) && password.value.match(/[A-Z]+/) 
+            && password.value.match(/[0-9]+/) && password.value.match(/[!@#$%^&*]+/)) {
+            return true;
+        } else {
+            let loginAlert = document.createElement("div");
+            let warningText = document.createTextNode("Hasło musi zawierać dużą i małą literę, cyfrę oraz znak specjalny.");
+            loginAlert.setAttribute("class", "alert alert-danger");
+            loginAlert.setAttribute("role", "alert");
+            loginAlert.appendChild(warningText);
+            alertDiv.appendChild(loginAlert);
+            return false;
+        }
+
+    }
+
+    function checkBothPasswords() {
         let password = document.getElementById(PASSWORD_ID);
         let secondPassword = document.getElementById(SECOND_PASSWORD_ID);
 
@@ -168,6 +228,27 @@ document.addEventListener('DOMContentLoaded', function (event) {
             return false;
         }
 
+    }
+
+    function countEntropy(password) {
+        let stat = {};
+
+        for (let i = 0; i < password.length; i++) {
+            let m = password.charAt(i);
+            if (stat.hasOwnProperty(m)) {
+                stat[m] += 1;
+            } else {
+                stat[m] = 1;
+            }
+        }
+        
+        let H = 0.0;
+        for (let i = 0; i < Object.keys(stat).length; i++) {
+            let pi = Object.values(stat)[i]/password.length;
+            H = H - pi*Math.log2(pi);
+        }
+        console.log(H)
+        return H;
     }
 
 });
