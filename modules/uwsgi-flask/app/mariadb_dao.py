@@ -1,4 +1,5 @@
 import time
+import flask
 import mysql.connector as mariadb
 import os
 
@@ -41,3 +42,19 @@ class MariaDBDAO:
         while self.sql is None:
             self.sql = self.choose_database("db")
         print("Connected to MariaDB.")
+
+    def set_new_user(self, login, password, name, surname, email):
+        try:
+            self.sql.execute(f"INSERT INTO user (login, password, name, surname, email) VALUES ('{login}', '{password}', '{name}', '{surname}', '{email}')")
+            self.db.commit()
+            self.sql.execute("SELECT login, password FROM user;")
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def user_exists(self, login):
+        try:
+            self.sql.execute(f"SELECT EXISTS (SELECT login FROM user WHERE login = '{login}')")
+            exists, = self.sql.fetchone()
+            return exists
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
