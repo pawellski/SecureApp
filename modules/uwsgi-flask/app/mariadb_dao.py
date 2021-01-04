@@ -58,3 +58,124 @@ class MariaDBDAO:
             return exists
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
+
+    def get_user_password(self, login):
+        try:
+            self.sql.execute(f"SELECT password FROM user WHERE login = '{login}'")
+            password, = self.sql.fetchone() or (None,)
+            return password
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+    
+    def get_host_attempt(self, ip):
+        try:
+            self.sql.execute(f"SELECT attempt FROM host WHERE ip = '{ip}'")
+            attempt, = self.sql.fetchone()
+            return attempt
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def set_host_attempt(self, ip, attempt):
+        try:
+            self.sql.execute(f"UPDATE host SET attempt = {attempt} WHERE  ip = '{ip}'")
+            self.db.commit()
+            self.sql.execute("SELECT ip, attempt, expire_block FROM host;")
+            print("SET HOST ATTEMPT")
+            for x, y, z, in self.sql:
+                print(x)
+                print(y)
+                print(z)
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def set_host_block(self, ip):
+        try:
+            self.sql.execute(f"UPDATE host SET attempt = 5, expire_block = (SELECT NOW() + INTERVAL 1 MINUTE) WHERE  ip = '{ip}'")
+            self.db.commit()
+            self.sql.execute("SELECT ip, attempt, expire_block FROM host;")
+            print("SET HOST BLOCK")
+            for x, y, z, in self.sql:
+                print(x)
+                print(y)
+                print(z)
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def block_exists(self, ip):
+        try:
+            self.sql.execute(f"SELECT EXISTS (SELECT ip FROM host WHERE ip = '{ip}')")
+            ip_exists, = self.sql.fetchone()
+            print(ip_exists)
+            if ip_exists == 0:
+                self.sql.execute(f"INSERT INTO host (ip, attempt, expire_block) VALUES ('{ip}', 0, null)")
+                self.db.commit()
+                print("JEST JUZ NOWY REKORD")
+                return 0
+            self.sql.execute(f"SELECT expire_block FROM host WHERE ip = '{ip}'")
+            expire_block, = self.sql.fetchone() or (None,)
+            print(expire_block)
+            if expire_block is not None:
+                print("IS NOT NULL EB")
+                self.sql.execute(f"SELECT CASE WHEN (SELECT NOW()) < (SELECT expire_block FROM host WHERE ip = '{ip}') THEN 1 ELSE 0 END")
+                exists, = self.sql.fetchone()
+                print(exists)
+                if exists == 0:
+                    self.sql.execute(f"UPDATE host SET attempt = 0, expire_block = null WHERE  ip = '{ip}'")
+            else:
+                exists = 0
+
+            self.sql.execute("SELECT ip, attempt, expire_block FROM host;")
+            print("BLOCK EXISTS")
+            for x, y, z, in self.sql:
+                print(x)
+                print(y)
+                print(z)
+            return exists
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def clear_host(self, ip):
+        try:
+            self.sql.execute(f"UPDATE host SET attempt = 0, expire_block = null WHERE  ip = '{ip}'")
+            self.db.commit()
+            self.sql.execute("SELECT ip, attempt, expire_block FROM host;")
+            print("CLEAR HOST")
+            for x, y, z, in self.sql:
+                print(x)
+                print(y)
+                print(z)
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def set_login_and_ip(self, login, ip):
+        try:
+            self.sql.execute(f"INSERT INTO assignment_ip (login, ip) VALUES ('{login}', '{ip}')")
+            self.db.commit()
+            self.sql.execute("SELECT login, ip FROM assignment_ip;")
+            print("SET LOGIN AND IP")
+            for x, y, in self.sql:
+                print(x)
+                print(y)
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def get_login_and_ip(self, login, ip):
+        try:
+            self.sql.execute(f"SELECT EXISTS (SELECT ip FROM assignment_ip WHERE ip = '{ip}' AND login = '{login}')")
+            exists, = self.sql.fetchone()
+            print("GET LOGIN AND IP")
+            for x, y, in self.sql:
+                print(x)
+                print(y)
+            print(exists)
+            return exists
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def get_user_email(self, login):
+        try:
+            self.sql.execute(f"SELECT email FROM user WHERE login = '{login}'")
+            email, = self.sql.fetchone() or (None,)
+            return email
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
