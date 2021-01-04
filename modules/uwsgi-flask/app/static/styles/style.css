@@ -11,12 +11,29 @@ nav {
     padding-top: 150px;
 }
 
-a {
+.a-link {
+    color: #000000
+}
+
+.a-nav {
     color: #000000;
     text-decoration: none;
     font-weight: bold;
     font-family: 'Open Sans', sans-serif;
     margin-left: 20px;
+    text-align: center;
+}
+
+li {
+    margin-right: 20px;
+    margin-left: 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.a-nav:hover {
+    color: #FFFFFF;
+    transition: 0.5s;
 }
 
 input {
@@ -33,8 +50,12 @@ footer {
     font-size: 15px;
 }
 
-button {
+#singin-submit-button, #signup-submit-button, #restore-password-button {
     margin-bottom: 20px;
+}
+
+#h4-restore {
+    margin-bottom: 50px;
 }
 
 meter {  
