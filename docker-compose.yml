@@ -19,6 +19,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
       - PEPPER=$PEPPER
+      - APP_SECRET=$APP_SECRET
 
   mariadb:
     image: mariadb
