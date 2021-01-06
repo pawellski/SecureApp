@@ -14,15 +14,18 @@ sql.execute("CREATE TABLE user (login VARCHAR(32), password VARCHAR(128), name V
 sql.execute("DELETE FROM user;")
 sql.execute("INSERT INTO user (login, password, name, surname, email) VALUES ('user', 'pass', 'User', 'Pass', 'e@mail');")
 
-sql.execute("DROP TABLE IF EXISTS session;")
-sql.execute("CREATE TABLE session (sid VARCHAR(32), login VARCHAR(32), PRIMARY KEY(sid));")
-sql.execute("DELETE FROM session;")
-sql.execute("INSERT INTO session (sid, login) VALUES ('session1', 'user');")
+sql.execute("DROP TABLE IF EXISTS host;")
+sql.execute("CREATE TABLE host (ip VARCHAR(32), attempt INT, expire_block DATETIME);")
+sql.execute("DELETE FROM host;")
 
-sql.execute("DROP TABLE IF EXISTS posts;")
-sql.execute("CREATE TABLE posts (id INT AUTO_INCREMENT, login VARCHAR(32), post VARCHAR(256), PRIMARY KEY(id));")
+sql.execute("DROP TABLE IF EXISTS assignment_ip;")
+sql.execute("CREATE TABLE assignment_ip (login VARCHAR(32), ip VARCHAR(32));")
+sql.execute("DELETE FROM assignment_ip;")
+
+sql.execute("DROP TABLE IF EXISTS note;")
+sql.execute("CREATE TABLE posts (id INT AUTO_INCREMENT, login VARCHAR(32), title VARCHAR(64), note VARCHAR(1024), password VARCHAR(128), extra VARCHAR(128), PRIMARY KEY(id));")
 sql.execute("DELETE FROM posts;")
-sql.execute("INSERT INTO posts (login, post, id) VALUES ('user', 'To jest sekret!', 1);")
+sql.execute("INSERT INTO posts (id, login, title, note, password, extra) VALUES (1, 'user', 'Sekret', 'To jest sekret!', null, null);")
 db.commit()
 
 sql.execute("SELECT login FROM user;")
