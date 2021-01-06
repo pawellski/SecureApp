@@ -130,3 +130,18 @@ def signin_validation(form):
         return False
     return True
 
+def increment_incorrect_logging(ip):
+    attempt = dao.get_host_attempt(ip)
+    attempt = attempt + 1
+    if attempt == 5:
+        dao.set_host_block(ip)
+    else:
+        dao.set_host_attempt(ip, attempt)
+
+def check_ip_address(login, ip):
+    dao.set_login_and_ip(login, ip)
+    email = dao.get_user_email(login)
+    print("---------------------------------------------------------------------")
+    print("| Nie rozpoznano adresu IP.                                         |")
+    print("| Wysyłam wiadomość o nowym logowaniu na adres mailowy " + email + "|")
+    print("---------------------------------------------------------------------")
