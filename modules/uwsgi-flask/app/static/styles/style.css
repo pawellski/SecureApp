@@ -56,7 +56,9 @@ footer {
 #textarea-note,
 #select-note,
 #password-note,
-#add-note-button {
+#add-note-button,
+#public-notes-h3,
+#private-notes-h3 {
     margin-bottom: 20px;
 }
 
@@ -90,4 +92,27 @@ meter[value="4"]::-moz-meter-bar { background: green; }
 
 select.form-control {
     -webkit-appearance: menulist;
+}
+
+#private-notes {
+    margin-bottom: 50px;
+}
+
+table {
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
+#decrypt-note-button {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 50px;
+}
+
+.hr-classifier {
+    height: 1px;
+    background-color: black;
+    margin-top: 100px;
+    margin-bottom: 100px;
 }

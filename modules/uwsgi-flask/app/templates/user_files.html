@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link href="/static/styles/style.css" rel="stylesheet" type="text/css">
-    <script></script>
+    <script src="/static/scripts/display_notes.js"></script>
     <title>Secure App</title>
   </head>
   <body>
@@ -44,7 +44,23 @@
     </nav>
 
     <div class="main-container container">
-        
+        <h3 id="private-notes-h3" class="font-weight-bold text-center">Prywatne notatki</h3>
+        <div id="private-notes"></div>
+        <h5 class="font-weight-bold text-center">Wprowadź dane, aby odszyfrować notatkę</h5>
+        <form id="decrypt-note" class = "text-center">
+            <div class="row">
+                <div class="col">
+                    <input type="text" id="title-decrypt-note" name="title" class="form-control" placeholder="Tytuł" maxlength="60" required>
+                </div>
+                <div class="col">
+                    <input type="password" id="password-decrypt-note" name="password" class="form-control" placeholder="Hasło" required>        
+                </div>
+            </div>
+            <button id="decrypt-note-button" class="btn btn-lg btn-secondary btn-block" type="submit">Odszyfruj notatkę</button>
+        </form>
+        <hr class="hr-classifier">
+        <h3 id="public-notes-h3" class="font-weight-bold text-center">Publiczne notatki</h3>
+        <div id="public-notes"></div>
     </div>
     <footer class="text-center text-lg-start">
         <div class="text-center p-3">
