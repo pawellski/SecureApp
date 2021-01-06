@@ -25,7 +25,6 @@ sql.execute("DELETE FROM assignment_ip;")
 sql.execute("DROP TABLE IF EXISTS posts;")
 sql.execute("CREATE TABLE posts (id INT AUTO_INCREMENT, login VARCHAR(32), title VARCHAR(64), note VARCHAR(1024), password VARCHAR(128), extra VARCHAR(128), PRIMARY KEY(id));")
 sql.execute("DELETE FROM posts;")
-sql.execute("INSERT INTO posts (id, login, title, note, password, extra) VALUES (1, 'user', 'Sekret', 'To jest sekret!', null, null);")
 db.commit()
 
 sql.execute("SELECT login FROM user;")
