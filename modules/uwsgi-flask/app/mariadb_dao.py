@@ -179,3 +179,36 @@ class MariaDBDAO:
             return email
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
+
+    def email_exists(self, email):
+        try:
+            self.sql.execute(f"SELECT EXISTS (SELECT email FROM user WHERE email = '{email}')")
+            exists, = self.sql.fetchone()
+            return exists
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def title_exists(self, login, title):
+        try:
+            self.sql.execute(f"SELECT EXISTS (SELECT title FROM posts WHERE login = '{login}' AND title = '{title}')")
+            exists, = self.sql.fetchone()
+            return exists
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+    
+    def set_note(self, login, title, note, password="null", extra="null"):
+        try:
+            self.sql.execute(f"INSERT INTO posts (login, title, note, password, extra) VALUES ('{login}', '{title}', '{note}', '{password}', '{extra}')")
+            self.db.commit()
+            print("BYL KOMIt")
+            self.sql.execute("SELECT id, login, title, note, password, extra FROM  posts;")
+            print("SET NOTE")
+            for x, y, z, v, o, p, in self.sql:
+                print(x)
+                print(y)
+                print(z)
+                print(v)
+                print(o)
+                print(p)
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
