@@ -196,11 +196,13 @@ class MariaDBDAO:
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
     
-    def set_note(self, login, title, note, password="null", extra="null"):
+    def set_note(self, login, title, note, password=None, extra=None):
         try:
-            self.sql.execute(f"INSERT INTO posts (login, title, note, password, extra) VALUES ('{login}', '{title}', '{note}', '{password}', '{extra}')")
+            if password is None and extra is None:
+                self.sql.execute(f"INSERT INTO posts (login, title, note, password, extra) VALUES ('{login}', '{title}', '{note}', null, null)")    
+            else:
+                self.sql.execute(f"INSERT INTO posts (login, title, note, password, extra) VALUES ('{login}', '{title}', '{note}', '{password}', '{extra}')")
             self.db.commit()
-            print("BYL KOMIt")
             self.sql.execute("SELECT id, login, title, note, password, extra FROM  posts;")
             print("SET NOTE")
             for x, y, z, v, o, p, in self.sql:
@@ -210,5 +212,25 @@ class MariaDBDAO:
                 print(v)
                 print(o)
                 print(p)
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def get_notes(self):
+        try:
+            self.sql.execute("SELECT login, title, note FROM posts WHERE password IS NULL;")
+            notes = self.sql.fetchall()
+            if len(notes) == 0:
+                return []
+            return notes
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def get_tiltes_encrypted_notes(self, login):
+        try:
+            self.sql.execute(f"SELECT title FROM posts WHERE login = '{login}' AND password IS NOT NULL;")
+            encrypted_notes = self.sql.fetchall()
+            if len(encrypted_notes) == 0:
+                return []
+            return encrypted_notes
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
