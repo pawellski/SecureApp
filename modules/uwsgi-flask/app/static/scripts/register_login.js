@@ -10,14 +10,17 @@ document.addEventListener('DOMContentLoaded', function (event) {
     const LOGIN_ID = "login";
     const PASSWORD_ID = "password";
     const SECOND_PASSWORD_ID = "second-password";
+    const LOGIN_LOGIN_ID = "login-login";
     
-    let HTTP_STATUS = {OK: 200, CREATED: 201, BAD_REQUEST:400, NOT_FOUND: 404};
+    let HTTP_STATUS = {OK: 200, CREATED: 201, BAD_REQUEST: 400, UNAUTHORIZED: 401, NOT_FOUND: 404};
     let PASSWORD_STATUS = {0: "bardzo słabe.", 1: "słabe.", 2: "średnie.", 3: "silne.", 4: "bardzo silne."};
     let registrationForm = document.getElementById("signup-form");
+    let loginForm = document.getElementById("signin-form");
     let passwordField = document.getElementById("password");
     let meter = document.getElementById("password-strength-meter");
     let passwordText = document.getElementById("password-strength-text");
     let alertDiv = document.getElementById("signup-alert");
+    let alertLoginDiv = document.getElementById("signin-alert");
 
     registrationForm.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -82,6 +85,81 @@ document.addEventListener('DOMContentLoaded', function (event) {
         }
     }
 
+    loginForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        alertLoginDiv.innerHTML = "";
+        submitLoginForm();
+    });
+
+    function submitLoginForm() {
+        let loginURL = URL + "signin";
+
+        let loginParams = {
+            method: POST,
+            body: new FormData(loginForm),
+            redirect: "follow"
+        };
+
+        fetch(loginURL, loginParams)
+            .then(response => getLoginResponseData(response))
+            .then(response => displayLoginInformation(response))
+            .catch(err => {
+                console.log("Caught error: " + err);
+            });
+    }
+
+    function getLoginResponseData(response) {
+        let status = response.status;
+
+        if (status === HTTP_STATUS.OK || status === HTTP_STATUS.UNAUTHORIZED) {
+            return response.json();
+        } else {
+            console.error("Response status code: " + response.status);
+            throw "Unexpected response status: " + response.status;
+        }
+    }
+
+    function displayLoginInformation(response) {
+        console.log(response.login)
+        if (response.login == "Accept") {
+            window.location.href = "/user_notes";
+        } else if(response.login == "Reject" || response.login == "Blocked") {
+            alertLoginDiv.innerHTML = "";
+            let warningText = "";
+            if (response.login == "Reject") {
+                warningText = document.createTextNode("Niepoprawne dane.");
+            } else {
+                warningText = document.createTextNode("Twoje próby logowania zostały zablokowane. Spróbuj za jakiś czas.");
+            }
+            let loginAlert = document.createElement("div");
+            loginAlert.setAttribute("class", "alert alert-danger");
+            loginAlert.setAttribute("role", "alert");
+            loginAlert.appendChild(warningText);
+            alertLoginDiv.appendChild(loginAlert);
+        } else {
+            console.error("Response status code: " + response.status);
+            throw "Unexpected response status: " + response.status;
+        }
+    }
+
+    function checkLoginResponse(response) {
+        status = response.status;
+
+        if (status == HTTP_STATUS.OK) {
+            window.location.href = "/user_notes";
+        } else if(status == HTTP_STATUS.UNAUTHORIZED) {
+            alertLoginDiv.innerHTML = "";
+            let loginAlert = document.createElement("div");
+            let warningText = document.createTextNode("Niepoprawne dane.");
+            loginAlert.setAttribute("class", "alert alert-danger");
+            loginAlert.setAttribute("role", "alert");
+            loginAlert.appendChild(warningText);
+            alertLoginDiv.appendChild(loginAlert);
+        } else {
+            console.error("Response status code: " + response.status);
+            throw "Unexpected response status: " + response.status;
+        }
+    }
     
     passwordField.addEventListener("input", function() {
         let password = passwordField.value;
@@ -228,6 +306,23 @@ document.addEventListener('DOMContentLoaded', function (event) {
             return false;
         }
 
+    }
+
+    function checkLoginWhileLogging() {
+        let login = document.getElementById(LOGIN_LOGIN_ID);
+        let alphaNumCharacters = /^[a-z0-9]+$/i;
+
+        if (!login.value.match(alphaNumCharacters)) {
+            alertLoginDiv.innerHTML = "";
+            let loginAlert = document.createElement("div");
+            let warningText = document.createTextNode("Niepoprawne dane.");
+            loginAlert.setAttribute("class", "alert alert-danger");
+            loginAlert.setAttribute("role", "alert");
+            loginAlert.appendChild(warningText);
+            alertLoginDiv.appendChild(loginAlert);
+            return false;
+        }
+        return true;
     }
 
     function countEntropy(password) {
