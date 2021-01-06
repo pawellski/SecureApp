@@ -50,7 +50,13 @@ footer {
     font-size: 15px;
 }
 
-#singin-submit-button, #signup-submit-button, #restore-password-button {
+#singin-submit-button,
+#signup-submit-button, 
+#restore-password-button,
+#textarea-note,
+#select-note,
+#password-note,
+#add-note-button {
     margin-bottom: 20px;
 }
 
@@ -82,3 +88,6 @@ meter[value="2"]::-moz-meter-bar { background: yellow; }
 meter[value="3"]::-moz-meter-bar { background: orange; }
 meter[value="4"]::-moz-meter-bar { background: green; }
 
+select.form-control {
+    -webkit-appearance: menulist;
+}
