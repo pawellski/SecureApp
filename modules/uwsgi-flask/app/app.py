@@ -8,7 +8,7 @@ from Crypto.Random import get_random_bytes
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Cipher import AES
-import base64
+import base64, json
 
 GET = "GET"
 POST = "POST"
@@ -112,9 +112,9 @@ def add_note():
             key = PBKDF2(password.encode('utf-8'), salt, dkLen=32)
             iv = get_random_bytes(16)
             cipher = AES.new(key, AES.MODE_CBC, iv)
-            encrypted = base64.b64encode(cipher.encrypt(pad(note.encode('utf-8'), 16))).decode('utf-8')
+            encrypted_note = base64.b64encode(cipher.encrypt(pad(note.encode('utf-8'), 16))).decode('utf-8')
             extra = base64.b64encode(salt_pbkdf + iv).decode('utf-8')
-            dao.set_note(login, title, note, hashed_password, extra)
+            dao.set_note(login, title, encrypted_note, hashed_password, extra)
             return make_response({"add_note": "Correct"}, 200)
     else:
         return make_response("Unauthorized", 401)
@@ -137,6 +137,33 @@ def user_files():
 def logout():
     session.pop('username', None)
     return redirect("/")
+
+@app.route('/notes', methods=[GET])
+def notes():
+    if 'username' in session.keys():
+        notes = dao.get_notes()
+        json_notes = []
+        for note in notes:
+            json_note = {"login": note[0], "title": note[1], "note": note[2]}
+            json_notes.append(json_note)
+        json_notes2 = json.dumps(json_notes)
+        return make_response(json_notes2, 200)
+    else:
+        return make_response("Unauthorized", 401)
+
+@app.route('/encrypted_notes', methods=[GET])
+def encrypted_notes():
+    if 'username' in session.keys():
+        login = session['username']
+        notes = dao.get_tiltes_encrypted_notes(login)
+        json_notes = []
+        for note in notes:
+            json_note = {"title": note[0]}
+            json_notes.append(json_note)
+        json_notes2 = json.dumps(json_notes)
+        return make_response(json_notes2, 200)
+    else:
+        return make_response("Unauthorized", 401)
 
 def signup_validation(form):
     errors = {}
