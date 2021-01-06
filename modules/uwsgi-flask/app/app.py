@@ -80,6 +80,20 @@ def signup():
         errors["registration"] = "Reject"
         return errors, 400
 
+@app.route('/user_notes', methods=[GET])
+def user_notes():
+    if 'username' in session.keys():
+        return make_response(render_template("user_notes.html"), 200)
+    else:
+        return make_response("Unauthorized", 401)
+
+@app.route('/user_files', methods=[GET])
+def user_files():
+    if 'username' in session.keys():
+        return make_response(render_template("user_files.html"), 200)
+    else:
+        return make_response("Unauthorized", 401)
+
 @app.route('/logout', methods=[GET])
 def logout():
     session.pop('username', None)
