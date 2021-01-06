@@ -4,6 +4,11 @@ from flask import request, redirect
 from flask import make_response, render_template, session
 from .mariadb_dao import MariaDBDAO
 import bcrypt, hashlib
+from Crypto.Random import get_random_bytes
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Cipher import AES
+import base64
 
 GET = "GET"
 POST = "POST"
@@ -80,6 +85,40 @@ def signup():
         errors["registration"] = "Reject"
         return errors, 400
 
+@app.route('/add_note', methods=[POST])
+def add_note():
+    if 'username' in session.keys():
+        form = request.form
+        login = session['username']
+        title = form.get("title")
+        note = form.get("note")
+        password = form.get("password")
+
+        errors = add_note_validation(title, note)
+        if len(errors) > 0:
+            errors["add_note"] = "Reject"
+            return make_response(errors, 400)
+        
+        if dao.title_exists(login, title) == 1:
+            return make_response({"add_note": "Already title exists."}, 409)
+
+        if form.get("password") is None:
+            dao.set_note(login, title, note)
+            return make_response({"add_note": "Correct"}, 200)
+        else:
+            salt = bcrypt.gensalt()
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+            salt_pbkdf = get_random_bytes(16)
+            key = PBKDF2(password.encode('utf-8'), salt, dkLen=32)
+            iv = get_random_bytes(16)
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            encrypted = base64.b64encode(cipher.encrypt(pad(note.encode('utf-8'), 16))).decode('utf-8')
+            extra = base64.b64encode(salt_pbkdf + iv).decode('utf-8')
+            dao.set_note(login, title, note, hashed_password, extra)
+            return make_response({"add_note": "Correct"}, 200)
+    else:
+        return make_response("Unauthorized", 401)
+
 @app.route('/user_notes', methods=[GET])
 def user_notes():
     if 'username' in session.keys():
@@ -123,7 +162,6 @@ def signup_validation(form):
         errors["password"] = "Password incorrect."
     return errors
 
-
 def signin_validation(form):
     login = form.get("login")
     if login.isalnum() == False:
@@ -145,3 +183,11 @@ def check_ip_address(login, ip):
     print("| Nie rozpoznano adresu IP.                                         |")
     print("| Wysyłam wiadomość o nowym logowaniu na adres mailowy " + email + "|")
     print("---------------------------------------------------------------------")
+
+def add_note_validation(title, note):
+    errors = {}
+    if title.replace(" ", "").isalnum() == False:
+        errors["title"] = "Incorrect title."
+    if "--" in note or "'" in note or "/*" in note or "#" in note or ";" in note:
+        errors["note"] = "Incorrect note."
+    return errors
