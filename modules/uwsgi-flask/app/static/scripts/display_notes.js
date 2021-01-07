@@ -1,9 +1,12 @@
 document.addEventListener('DOMContentLoaded', function (event) {
     
     const GET = "GET";
+    const POST = "POST";
     const URL = "https://localhost/";
     
-    let HTTP_STATUS = {OK: 200, BAD_REQUEST: 400};
+    let HTTP_STATUS = {OK: 200, BAD_REQUEST: 400, NOT_FOUND: 404};
+    let decryptNoteForm = document.getElementById("decrypt-note-form");
+    let alertDiv = document.getElementById("alert-div");
 
     getPublicNotes();
     getTitlePrivateNotes();
@@ -34,10 +37,28 @@ document.addEventListener('DOMContentLoaded', function (event) {
             .then(response => displayPrivateNotes(response))
     }
 
+    decryptNoteForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        alertDiv.innerHTML = "";
+
+        let decryptNoteURL = URL + "decrypt_note";
+
+        let decryptNoteParams = {
+            method: POST,
+            body: new FormData(decryptNoteForm),
+            redirect: "follow"
+        };
+
+        fetch(decryptNoteURL, decryptNoteParams)
+            .then(response => getResponseData(response))
+            .then(response => displayDecryptNoteInformation(response))
+    
+    });
+
     function getResponseData(response) {
         let status = response.status;
 
-        if (status === HTTP_STATUS.OK) {
+        if (status === HTTP_STATUS.OK || status === HTTP_STATUS.BAD_REQUEST || status === HTTP_STATUS.NOT_FOUND) {
             return response.json()
         } else {
             console.error("Response status code: " + response.status);
@@ -171,5 +192,32 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
     }
     
+    function displayDecryptNoteInformation(response) {
+        if (response.get_note == "Accept") {
+            decryptNoteForm.reset();
+            let alert = document.createElement("div");
+            let text = document.createTextNode(response.note);
+            alert.setAttribute("class", "alert alert-light text-break");
+            alert.setAttribute("role", "alert");
+            alert.appendChild(text);
+            alertDiv.appendChild(alert);
+        } else if (response.get_note == "Reject") {
+            decryptNoteForm.reset();
+            let alert = document.createElement("div");
+            let text = document.createTextNode("Niepoprawne hasło.");
+            alert.setAttribute("class", "alert alert-danger");
+            alert.setAttribute("role", "alert");
+            alert.appendChild(text);
+            alertDiv.appendChild(alert);
+        } else if (response.get_note == "Not found") {
+            decryptNoteForm.reset();
+            let alert = document.createElement("div");
+            let text = document.createTextNode("Nie istnieje szyfrowana notatka o wskazanym tytule.");
+            alert.setAttribute("class", "alert alert-danger");
+            alert.setAttribute("role", "alert");
+            alert.appendChild(text);
+            alertDiv.appendChild(alert);
+        }
+    }
 
 });
