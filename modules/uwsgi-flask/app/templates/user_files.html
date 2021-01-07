@@ -47,7 +47,7 @@
         <h3 id="private-notes-h3" class="font-weight-bold text-center">Prywatne notatki</h3>
         <div id="private-notes"></div>
         <h5 class="font-weight-bold text-center">Wprowadź dane, aby odszyfrować notatkę</h5>
-        <form id="decrypt-note" class = "text-center">
+        <form id="decrypt-note-form" class = "text-center">
             <div class="row">
                 <div class="col">
                     <input type="text" id="title-decrypt-note" name="title" class="form-control" placeholder="Tytuł" maxlength="60" required>
@@ -58,6 +58,7 @@
             </div>
             <button id="decrypt-note-button" class="btn btn-lg btn-secondary btn-block" type="submit">Odszyfruj notatkę</button>
         </form>
+        <div id="alert-div"></div>
         <hr class="hr-classifier">
         <h3 id="public-notes-h3" class="font-weight-bold text-center">Publiczne notatki</h3>
         <div id="public-notes"></div>
