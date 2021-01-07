@@ -94,10 +94,14 @@ def signup():
         dao.set_login_and_ip(form.get("login"), request.remote_addr)
         del salt
         del hashed_password
-        return {"registration": "Accept"}, 201
+        response = make_response({"registration": "Accept"}, 201)
+        response.headers['server'] = None
+        return response
     else:
         errors["registration"] = "Reject"
-        return errors, 400
+        response = make_response(errors, 400)
+        response.headers['server'] = None
+        return response
 
 @app.route('/add_note', methods=[POST])
 def add_note():
