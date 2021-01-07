@@ -126,10 +126,10 @@ def user_notes():
     else:
         return make_response("Unauthorized", 401)
 
-@app.route('/user_files', methods=[GET])
+@app.route('/user_add', methods=[GET])
 def user_files():
     if 'username' in session.keys():
-        return make_response(render_template("user_files.html"), 200)
+        return make_response(render_template("user_add.html"), 200)
     else:
         return make_response("Unauthorized", 401)
 
