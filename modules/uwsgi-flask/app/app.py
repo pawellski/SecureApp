@@ -24,7 +24,9 @@ dao = MariaDBDAO("mariadb")
 
 @app.route('/')
 def index():
-    return make_response(render_template("index.html"), 200)
+    response = make_response(render_template("index.html"), 200)
+    response.headers['server'] = None
+    return response
 
 @app.route('/restore', methods=[GET, POST])
 def restore():
@@ -36,10 +38,16 @@ def restore():
                 print("| Prośba o odzyskanie hasła.                                                 |")
                 print("| Wysyłam wiadomość na adres mailowy " + email + " z linkiem do resetu hasła.|")
                 print("------------------------------------------------------------------------------")
-                return make_response({"send_message": "Accept"}, 200)
-        return make_response({"send_message": "Reject"}, 400)
+                response = make_response({"send_message": "Accept"}, 200)
+                response.headers['server'] = None
+                return response
+        response = make_response({"send_message": "Reject"}, 400)
+        response.headers['server'] = None
+        return response
     else:
-        return make_response(render_template("restore.html"), 200)
+        response = make_response(render_template("restore.html"), 200)
+        response.headers['server'] = None
+        return response
 
 @app.route('/signin', methods=[POST])
 def signin():
@@ -60,11 +68,17 @@ def signin():
                     if dao.get_login_and_ip(login, request.remote_addr) == 0:
                         check_ip_address(login, request.remote_addr)
                     session['username'] = login
-                    return make_response({"login": "Accept"}, 200)
+                    response = make_response({"login": "Accept"}, 200)
+                    response.headers['server'] = None
+                    return response
         increment_incorrect_logging(request.remote_addr)
-        return make_response({"login": "Reject"}, 401)
+        response = make_response({"login": "Reject"}, 401)
+        response.headers['server'] = None
+        return response
     else:
-        return make_response({"login": "Blocked"}, 401)
+        response = make_response({"login": "Blocked"}, 401)
+        response.headers['server'] = None
+        return response
 
 
 @app.route('/signup', methods=[POST])
@@ -97,14 +111,20 @@ def add_note():
         errors = add_note_validation(title, note)
         if len(errors) > 0:
             errors["add_note"] = "Reject"
-            return make_response(errors, 400)
+            response = make_response(errors, 400)
+            response.headers['server'] = None
+            return response
         
         if dao.title_exists(login, title) == 1:
-            return make_response({"add_note": "Already title exists."}, 409)
+            response = make_response({"add_note": "Already title exists."}, 409)
+            response.headers['server'] = None
+            return response
 
         if form.get("password") is None:
             dao.set_note(login, title, note)
-            return make_response({"add_note": "Correct"}, 200)
+            response = make_response({"add_note": "Correct"}, 200)
+            response.headers['server'] = None
+            return response
         else:
             salt = bcrypt.gensalt()
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
@@ -115,23 +135,35 @@ def add_note():
             encrypted_note = base64.b64encode(cipher.encrypt(pad(note.encode('utf-8'), 16))).decode('utf-8')
             extra = base64.b64encode(salt_pbkdf + iv).decode('utf-8')
             dao.set_note(login, title, encrypted_note, hashed_password, extra)
-            return make_response({"add_note": "Correct"}, 200)
+            response = make_response({"add_note": "Correct"}, 200)
+            response.headers['server'] = None
+            return response
     else:
-        return make_response("Unauthorized", 401)
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
 
 @app.route('/user_notes', methods=[GET])
 def user_notes():
     if 'username' in session.keys():
-        return make_response(render_template("user_notes.html"), 200)
+        response = make_response(render_template("user_notes.html"), 200)
+        response.headers['server'] = None
+        return response
     else:
-        return make_response("Unauthorized", 401)
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
 
 @app.route('/user_add', methods=[GET])
 def user_files():
     if 'username' in session.keys():
-        return make_response(render_template("user_add.html"), 200)
+        response = make_response(render_template("user_add.html"), 200)
+        response.headers['server'] = None
+        return response
     else:
-        return make_response("Unauthorized", 401)
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
 
 @app.route('/logout', methods=[GET])
 def logout():
@@ -147,9 +179,13 @@ def notes():
             json_note = {"login": note[0], "title": note[1], "note": note[2]}
             json_notes.append(json_note)
         json_notes2 = json.dumps(json_notes)
-        return make_response(json_notes2, 200)
+        response = make_response(json_notes2, 200)
+        response.headers['server'] = None
+        return response
     else:
-        return make_response("Unauthorized", 401)
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
 
 @app.route('/encrypted_notes', methods=[GET])
 def encrypted_notes():
@@ -161,9 +197,13 @@ def encrypted_notes():
             json_note = {"title": note[0]}
             json_notes.append(json_note)
         json_notes2 = json.dumps(json_notes)
-        return make_response(json_notes2, 200)
+        response = make_response(json_notes2, 200)
+        response.headers['server'] = None
+        return response
     else:
-        return make_response("Unauthorized", 401)
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
 
 @app.route('/decrypt_note', methods=[POST])
 def decrypt_note():
@@ -182,7 +222,9 @@ def decrypt_note():
 
         
         if db_password is None or extra is None:
-            return make_response({"get_note": "Not found"}, 404)
+            response = make_response({"get_note": "Not found"}, 404)
+            response.headers['server'] = None
+            return response
         
         if bcrypt.checkpw(password.encode('utf-8'), db_password.encode('utf-8')):
             salt = base64.b64decode(extra.encode('utf-8'))[0:16]
@@ -192,12 +234,17 @@ def decrypt_note():
             encrypted_note = dao.get_encrypted_note(login, title)
             prepared_note = base64.b64decode(encrypted_note.encode('utf-8'))
             note = unpad(cipher.decrypt(prepared_note), 16).decode('utf-8')
-            return make_response({"get_note": "Accept", "note": note}, 200)
+            response = make_response({"get_note": "Accept", "note": note}, 200)
+            response.headers['server'] = None
+            return response
         else:
-            return make_response({"get_note": "Reject"}, 400)
-
+            response = make_response({"get_note": "Reject"}, 400)
+            response.headers['server'] = None
+            return response
     else:
-        return make_response("Unauthorized", 401)
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
 
 def signup_validation(form):
     errors = {}
