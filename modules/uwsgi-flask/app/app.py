@@ -36,7 +36,7 @@ def restore():
                 print("| Prośba o odzyskanie hasła.                                                 |")
                 print("| Wysyłam wiadomość na adres mailowy " + email + " z linkiem do resetu hasła.|")
                 print("------------------------------------------------------------------------------")
-                return makre_response({"send_message": "Accept"}, 200)
+                return make_response({"send_message": "Accept"}, 200)
         return make_response({"send_message": "Reject"}, 400)
     else:
         return make_response(render_template("restore.html"), 200)
@@ -109,7 +109,7 @@ def add_note():
             salt = bcrypt.gensalt()
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
             salt_pbkdf = get_random_bytes(16)
-            key = PBKDF2(password.encode('utf-8'), salt, dkLen=32)
+            key = PBKDF2(password.encode('utf-8'), salt_pbkdf, dkLen=32)
             iv = get_random_bytes(16)
             cipher = AES.new(key, AES.MODE_CBC, iv)
             encrypted_note = base64.b64encode(cipher.encrypt(pad(note.encode('utf-8'), 16))).decode('utf-8')
@@ -162,6 +162,40 @@ def encrypted_notes():
             json_notes.append(json_note)
         json_notes2 = json.dumps(json_notes)
         return make_response(json_notes2, 200)
+    else:
+        return make_response("Unauthorized", 401)
+
+@app.route('/decrypt_note', methods=[POST])
+def decrypt_note():
+    if 'username' in session.keys():
+        form = request.form
+        login = session['username']
+        title = form.get("title")
+        password = form.get("password")
+        print(login)
+        print(title)
+        print(password)
+        db_password = dao.get_note_password(login, title)
+        extra = dao.get_note_extra(login, title)
+        print(db_password)
+        print(extra)
+
+        
+        if db_password is None or extra is None:
+            return make_response({"get_note": "Not found"}, 404)
+        
+        if bcrypt.checkpw(password.encode('utf-8'), db_password.encode('utf-8')):
+            salt = base64.b64decode(extra.encode('utf-8'))[0:16]
+            iv = base64.b64decode(extra.encode('utf-8'))[16:32]
+            key = PBKDF2(password.encode('utf-8'), salt, dkLen=32)
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            encrypted_note = dao.get_encrypted_note(login, title)
+            prepared_note = base64.b64decode(encrypted_note.encode('utf-8'))
+            note = unpad(cipher.decrypt(prepared_note), 16).decode('utf-8')
+            return make_response({"get_note": "Accept", "note": note}, 200)
+        else:
+            return make_response({"get_note": "Reject"}, 400)
+
     else:
         return make_response("Unauthorized", 401)
 

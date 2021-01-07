@@ -234,3 +234,27 @@ class MariaDBDAO:
             return encrypted_notes
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
+    
+    def get_note_password(self, login, title):
+        try:
+            self.sql.execute(f"SELECT password FROM posts WHERE title = '{title}' AND login = '{login}'")
+            password, = self.sql.fetchone() or (None,)
+            return password
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def get_note_extra(self, login, title):
+        try:
+            self.sql.execute(f"SELECT extra FROM posts WHERE title = '{title}' AND login = '{login}'")
+            extra, = self.sql.fetchone() or (None,)
+            return extra
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def get_encrypted_note(self, login, title):
+        try:
+            self.sql.execute(f"SELECT note FROM posts WHERE title = '{title}' AND login = '{login}'")
+            note, = self.sql.fetchone() or (None,)
+            return note
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
