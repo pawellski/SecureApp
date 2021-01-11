@@ -8,7 +8,7 @@ nav {
 }
 
 .main-container {
-    padding-top: 150px;
+    padding-top: 100px;
 }
 
 .a-link {
@@ -115,4 +115,8 @@ table {
     background-color: black;
     margin-top: 100px;
     margin-bottom: 100px;
+}
+
+#h3-file {
+    padding-top: 80px;
 }

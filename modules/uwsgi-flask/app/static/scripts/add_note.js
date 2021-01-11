@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
     let selectNote = document.getElementById("select-note");
     let passwordField = document.getElementById("password-note");
     let alertDiv = document.getElementById("alert-div");
+    let addFileForm = document.getElementById("add-file-form");
+    let alertDiv2 = document.getElementById("alert-div-2");
     
     addNoteForm.addEventListener("submit", function(e) {
         e.preventDefault();
@@ -21,6 +23,26 @@ document.addEventListener('DOMContentLoaded', function (event) {
         if (c1 == true && c2 == true) {
             submitAddNoteForm();
         }
+    });
+
+    addFileForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        let addFileUrl = URL + "add_file";
+
+        let addFileParams = {
+            method: POST,
+            body: new FormData(addFileForm),
+            redirect: "follow"
+        };
+
+        fetch(addFileUrl, addFileParams)
+                .then(response => getAddFileResponseData(response))
+                .then(response => displayFileInformation(response))
+                .catch(err => {
+                    console.log("Caught error: " + err);
+                });
+
     });
 
     function submitAddNoteForm() {
@@ -34,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
         fetch(addNoteUrl, addNoteParams)
                 .then(response => getAddNoteResponseData(response))
-                .then(response => displayInformation(response))
+                .then(response => displayNoteInformation(response))
                 .catch(err => {
                     console.log("Caught error: " + err);
                 });
@@ -51,7 +73,18 @@ document.addEventListener('DOMContentLoaded', function (event) {
         }
     }
 
-    function displayInformation(response) {
+    function getAddFileResponseData(response) {
+        let status = response.status;
+
+        if (status === HTTP_STATUS.OK || status === HTTP_STATUS.BAD_REQUEST) {
+            return response.json()
+        } else {
+            console.error("Response status code: " + response.status);
+            throw "Unexpected response status: " + response.status;
+        }
+    }
+
+    function displayNoteInformation(response) {
         if (response.add_note == "Correct") {
             addNoteForm.reset();
             passwordField.disabled = false;
@@ -69,6 +102,26 @@ document.addEventListener('DOMContentLoaded', function (event) {
             titleAlert.setAttribute("role", "alert");
             titleAlert.appendChild(warningText);
             alertDiv.appendChild(titleAlert);
+        }
+    }
+
+    function displayFileInformation(response) {
+        if (response.file == "Accept") {
+            addFileForm.reset();
+            let successAlert = document.createElement("div");
+            let successText = document.createTextNode("Plik został dodany pomyślnie.");
+            successAlert.setAttribute("class", "alert alert-success");
+            successAlert.setAttribute("role", "alert");
+            successAlert.appendChild(successText);
+            alertDiv2.appendChild(successAlert);
+        }
+        else {
+            let dangerAlert = document.createElement("div");
+            let dangerText = document.createTextNode("Plik nie został dodany.");
+            dangerAlert.setAttribute("class", "alert alert-danger");
+            dangerAlert.setAttribute("role", "alert");
+            dangerAlert.appendChild(dangerText);
+            alertDiv2.appendChild(dangerAlert);
         }
     }
 
