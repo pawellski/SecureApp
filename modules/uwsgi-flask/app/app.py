@@ -8,13 +8,14 @@ from Crypto.Random import get_random_bytes
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Cipher import AES
-import base64, json
+import base64, json, uuid
 
 GET = "GET"
 POST = "POST"
 PEPPER = "PEPPER"
 APP_SECRET = "APP_SECRET"
 SESSION = "session"
+FILE_PATH = "app/files/"
 
 app = Flask(__name__)
 app.secret_key = os.environ.get(APP_SECRET)
@@ -250,6 +251,43 @@ def decrypt_note():
         response.headers['server'] = None
         return response
 
+@app.route('/add_file', methods=[POST])
+def add_file():
+    if 'username' not in session.keys():
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
+
+    if 'file' not in request.files:
+        response = make_response({"file": "not exists"}, 400)
+        response.headers['server'] = None
+        return response
+    
+    new_file = request.files["file"]
+
+    if new_file.filename == '':
+        response = make_response({"file": "not exists"}, 400)
+        response.headers['server'] = None
+        return response
+
+    if allowed_type(new_file.filename) == 1:
+        response = make_response({"file": "wrong type"}, 400)
+        response.headers['server'] = None
+        return response
+
+    login = session['username']
+    unique_file_id = uuid.uuid4().hex
+    unique_filename = unique_file_id + '.' + new_file.filename.split('.')[1]
+    dao.save_file(login, new_file.filename, unique_filename)
+    new_file.filename = unique_filename
+    path_to_file = os.path.join(FILE_PATH, new_file.filename)
+    new_file.save(path_to_file)
+
+    response = make_response({"file": "Accept"}, 200)
+    response.headers['server'] = None
+    return response
+
+
 def signup_validation(form):
     errors = {}
     name = form.get("name")
@@ -303,3 +341,11 @@ def add_note_validation(title, note):
     if "--" in note or "'" in note or "/*" in note or "#" in note or ";" in note:
         errors["note"] = "Incorrect note."
     return errors
+
+def allowed_type(filename):
+    allowed_extensions = ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "pdf", "jpg", "jpeg", "png", "svg", "gif"]
+    file_extension = filename.split('.')[1]
+    if file_extension in allowed_extensions:
+        return 0
+    else:
+        return 1

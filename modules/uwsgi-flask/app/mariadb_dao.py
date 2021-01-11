@@ -258,3 +258,10 @@ class MariaDBDAO:
             return note
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
+
+    def save_file(self, login, filename, file_uuid):
+        try:
+            self.sql.execute(f"INSERT INTO files (login, filename, file_uuid) VALUES ('{login}', '{filename}', '{file_uuid}')")
+            self.db.commit()
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
