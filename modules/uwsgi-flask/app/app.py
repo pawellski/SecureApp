@@ -160,9 +160,20 @@ def user_notes():
         return response
 
 @app.route('/user_add', methods=[GET])
-def user_files():
+def user_add():
     if 'username' in session.keys():
         response = make_response(render_template("user_add.html"), 200)
+        response.headers['server'] = None
+        return response
+    else:
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
+
+@app.route('/user_files', methods=[GET])
+def user_files():
+    if 'username' in session.keys():
+        response = make_response(render_template("user_files.html"), 200)
         response.headers['server'] = None
         return response
     else:
