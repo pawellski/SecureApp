@@ -58,7 +58,9 @@ footer {
 #password-note,
 #add-note-button,
 #public-notes-h3,
-#private-notes-h3 {
+#private-notes-h3,
+#add-file-button,
+#files-h3 {
     margin-bottom: 20px;
 }
 

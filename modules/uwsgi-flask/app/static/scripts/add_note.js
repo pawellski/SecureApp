@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
     addFileForm.addEventListener("submit", function(e) {
         e.preventDefault();
+        alertDiv2.innerHTML = "";
 
         let addFileUrl = URL + "add_file";
 
