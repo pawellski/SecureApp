@@ -298,6 +298,20 @@ def add_file():
     response.headers['server'] = None
     return response
 
+@app.route('/files', methods=[GET])
+def get_files():
+    if 'username' not in session.keys():
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
+
+    login = session['username']
+    files = dao.get_files(login)
+    files_json = json.dumps(list(files))
+    response = make_response(files_json, 200)
+    response.headers['server'] = None
+    return response
+    
 
 def signup_validation(form):
     errors = {}

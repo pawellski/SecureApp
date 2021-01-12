@@ -265,3 +265,13 @@ class MariaDBDAO:
             self.db.commit()
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
+
+    def get_files(self, login):
+        try:
+            self.sql.execute(f"SELECT filename FROM files WHERE login = '{login}'")
+            files = self.sql.fetchall()
+            if len(files) == 0:
+                return []
+            return files
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
