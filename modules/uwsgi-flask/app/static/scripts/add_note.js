@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     function getAddFileResponseData(response) {
         let status = response.status;
 
-        if (status === HTTP_STATUS.OK || status === HTTP_STATUS.BAD_REQUEST) {
+        if (status === HTTP_STATUS.OK || status === HTTP_STATUS.BAD_REQUEST || status === HTTP_STATUS.CONFLICT) {
             return response.json()
         } else {
             console.error("Response status code: " + response.status);
@@ -115,6 +115,13 @@ document.addEventListener('DOMContentLoaded', function (event) {
             successAlert.setAttribute("role", "alert");
             successAlert.appendChild(successText);
             alertDiv2.appendChild(successAlert);
+        } else if(response.file == "file exists") {
+            let warningAlert = document.createElement("div");
+            let warningText = document.createTextNode("Istnieje już plik o tej samej nazwie.");
+            warningAlert.setAttribute("class", "alert alert-warning");
+            warningAlert.setAttribute("role", "alert");
+            warningAlert.appendChild(warningText);
+            alertDiv2.appendChild(warningAlert);
         }
         else {
             let dangerAlert = document.createElement("div");

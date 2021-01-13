@@ -1,6 +1,6 @@
 import time, re, os
 from flask import Flask
-from flask import request, redirect
+from flask import request, redirect, send_file
 from flask import make_response, render_template, session
 from .mariadb_dao import MariaDBDAO
 import bcrypt, hashlib
@@ -16,6 +16,7 @@ PEPPER = "PEPPER"
 APP_SECRET = "APP_SECRET"
 SESSION = "session"
 FILE_PATH = "app/files/"
+FILE_PATH_TO_DOWNLOAD = "files/"
 
 app = Flask(__name__)
 app.secret_key = os.environ.get(APP_SECRET)
@@ -228,14 +229,9 @@ def decrypt_note():
         login = session['username']
         title = form.get("title")
         password = form.get("password")
-        print(login)
-        print(title)
-        print(password)
+
         db_password = dao.get_note_password(login, title)
         extra = dao.get_note_extra(login, title)
-        print(db_password)
-        print(extra)
-
         
         if db_password is None or extra is None:
             response = make_response({"get_note": "Not found"}, 404)
@@ -287,9 +283,16 @@ def add_file():
         return response
 
     login = session['username']
+
+    if dao.file_exists(login, new_file.filename.split('.')[0]) is not None:
+        response = make_response({"file": "file exists"}, 409)
+        response.headers['server'] = None
+        return response
+
     unique_file_id = uuid.uuid4().hex
-    unique_filename = unique_file_id + '.' + new_file.filename.split('.')[1]
-    dao.save_file(login, new_file.filename, unique_filename)
+    split_filename = new_file.filename.split('.')
+    unique_filename = unique_file_id + '.' + split_filename[1]
+    dao.save_file(login, split_filename[0], unique_filename)
     new_file.filename = unique_filename
     path_to_file = os.path.join(FILE_PATH, new_file.filename)
     new_file.save(path_to_file)
@@ -311,7 +314,34 @@ def get_files():
     response = make_response(files_json, 200)
     response.headers['server'] = None
     return response
+
+@app.route('/download_file/<string:file>', methods=[GET])
+def download_file(file):
+    if 'username' not in session.keys():
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
+
+    login = session['username']
+    filename = dao.get_file_to_download(login, file)
+
+    if filename is None:
+        response = make_response({"file": "not exisits"}, 404)
+        response.headers['server'] = None
+        return response
     
+    file_name_to_send = file + '.' + filename.split('.')[1]
+    filepath = os.path.join(FILE_PATH_TO_DOWNLOAD, filename)
+
+    if not os.path.exists(filepath):
+        response = make_response({"file": "not exisits"}, 404)
+        response.headers['server'] = None
+        return response
+
+    try:
+        return send_file(filepath, as_attachment=True, attachment_filename=file_name_to_send)
+    except Exception as e:
+        print(e)
 
 def signup_validation(form):
     errors = {}

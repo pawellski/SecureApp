@@ -266,6 +266,15 @@ class MariaDBDAO:
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
+    def file_exists(self, login, filename):
+        try:
+            self.sql.execute(f"SELECT filename FROM files WHERE login = '{login}' AND filename = '{filename}'")
+            filename, = self.sql.fetchone() or (None, )
+            return filename
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+
     def get_files(self, login):
         try:
             self.sql.execute(f"SELECT filename FROM files WHERE login = '{login}'")
@@ -273,5 +282,13 @@ class MariaDBDAO:
             if len(files) == 0:
                 return []
             return files
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def get_file_to_download(self, login, filename):
+        try:
+            self.sql.execute(f"SELECT file_uuid FROM files WHERE login = '{login}' AND filename = '{filename}'")
+            file_uuid, = self.sql.fetchone() or (None, )
+            return file_uuid
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")

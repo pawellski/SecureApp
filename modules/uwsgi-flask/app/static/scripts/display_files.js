@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
             th1Text = document.createTextNode("Nazwa pliku");
             th1.appendChild(th1Text);
             let th2 = document.createElement("th");
+            th2.setAttribute("id", "downloadCol");
             th2.setAttribute("scope", "col");
             th2Text = document.createTextNode("Pobierz");
             th2.appendChild(th2Text);
