@@ -159,7 +159,7 @@ class MariaDBDAO:
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
-    def get_login_and_ip(self, login, ip):
+    def check_login_and_ip(self, login, ip):
         try:
             self.sql.execute(f"SELECT EXISTS (SELECT ip FROM assignment_ip WHERE ip = '{ip}' AND login = '{login}')")
             exists, = self.sql.fetchone()
@@ -290,5 +290,34 @@ class MariaDBDAO:
             self.sql.execute(f"SELECT file_uuid FROM files WHERE login = '{login}' AND filename = '{filename}'")
             file_uuid, = self.sql.fetchone() or (None, )
             return file_uuid
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def set_password_restore(self, email, restore_id):
+        try:
+            self.sql.execute(f"SELECT EXISTS (SELECT email, restore_id, expire_date FROM restore_password WHERE email = '{email}')")
+            exists, = self.sql.fetchone()
+            if exists == 0:
+                self.sql.execute(f"INSERT INTO restore_password (email, restore_id, expire_date) VALUES ('{email}', '{restore_id}', (SELECT NOW() + INTERVAL 5 MINUTE))")
+            else:
+                self.sql.execute(f"UPDATE restore_password SET restore_id = '{restore_id}', expire_date = (SELECT NOW() + INTERVAL 1 MINUTE) WHERE  email = '{email}'")
+            self.db.commit()
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def check_restore_id_validity(self, restore_id):
+        try:
+            self.sql.execute(f"SELECT CASE WHEN (SELECT NOW()) < (SELECT expire_date FROM restore_password WHERE restore_id = '{restore_id}') THEN 0 ELSE 1 END")
+            condition, = self.sql.fetchone()
+            return condition
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")
+
+    def update_password(self, restore_id, password):
+        try:
+            self.sql.execute(f"SELECT email FROM restore_password WHERE restore_id = '{restore_id}'")
+            email, = self.sql.fetchone()
+            self.sql.execute(f"UPDATE user SET password = '{password}' WHERE  email = '{email}'")
+            self.db.commit()
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")

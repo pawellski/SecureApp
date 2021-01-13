@@ -36,10 +36,7 @@ def restore():
         email = request.form.get("email")
         if re.match(r"[^@]+@[^@]+\.[^@]+", email):
             if dao.email_exists(email) == 1:
-                print("------------------------------------------------------------------------------")
-                print("| Prośba o odzyskanie hasła.                                                 |")
-                print("| Wysyłam wiadomość na adres mailowy " + email + " z linkiem do resetu hasła.|")
-                print("------------------------------------------------------------------------------")
+                send_restore_password_message(email)
                 response = make_response({"send_message": "Accept"}, 200)
                 response.headers['server'] = None
                 return response
@@ -67,7 +64,7 @@ def signin():
                     del hashed_password
                     del password_db
                     dao.clear_host(request.remote_addr)
-                    if dao.get_login_and_ip(login, request.remote_addr) == 0:
+                    if dao.check_login_and_ip(login, request.remote_addr) == 0:
                         check_ip_address(login, request.remote_addr)
                     session['username'] = login
                     response = make_response({"login": "Accept"}, 200)
@@ -343,6 +340,35 @@ def download_file(file):
     except Exception as e:
         print(e)
 
+@app.route('/restore_password/<string:restore_id>', methods=[GET, POST])
+def restore_password(restore_id):
+    if not restore_id.isalnum() or dao.check_restore_id_validity(restore_id) == 1:
+        response = make_response("Unauthorized", 401)
+        response.headers['server'] = None
+        return response
+
+    if request.method == POST:
+        form = request.form
+        if restore_validation(form.get('password')) is False:
+            response = make_response({"password": "incorrect"}, 400)
+            response.headers['server'] = None
+            return response
+        
+        hashed_password = hashlib.sha256((form.get("password") + os.environ.get(PEPPER)).encode('utf-8'))
+        hashed_password = hashlib.sha256(hashed_password.hexdigest().encode('utf-8'))
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(hashed_password.hexdigest().encode('utf-8'), salt).decode('utf-8')
+        dao.update_password(restore_id, hashed_password)
+        del salt
+        del hashed_password
+        response = make_response("correct", 200)
+        response.headers['server'] = None
+        return response   
+    else:     
+        response = make_response(render_template("restore_password.html"), 200)
+        response.headers['server'] = None
+        return response
+
 def signup_validation(form):
     errors = {}
     name = form.get("name")
@@ -384,10 +410,10 @@ def increment_incorrect_logging(ip):
 def check_ip_address(login, ip):
     dao.set_login_and_ip(login, ip)
     email = dao.get_user_email(login)
-    print("---------------------------------------------------------------------")
-    print("| Nie rozpoznano adresu IP.                                         |")
-    print("| Wysyłam wiadomość o nowym logowaniu na adres mailowy " + email + "|")
-    print("---------------------------------------------------------------------")
+    print("------------------------------------------------------------------------")
+    print("| Nie rozpoznano adresu IP " + ip + "                             |")
+    print("| Wysyłam wiadomość o nowym logowaniu na adres mailowy " + email + "  |")
+    print("------------------------------------------------------------------------")
 
 def add_note_validation(title, note):
     errors = {}
@@ -404,3 +430,20 @@ def allowed_type(filename):
         return 0
     else:
         return 1
+
+def send_restore_password_message(email):
+    restore_id = uuid.uuid4().hex
+    link = "https://localhost/restore_password/" + restore_id
+    dao.set_password_restore(email, restore_id)
+
+    print("---------------------------------------------------------------------------------------------")
+    print("| Prośba o odzyskanie hasła.                                                                |")
+    print("| Wysyłam wiadomość na adres mailowy " + email + "                                         |")
+    print("| Link do resetu hasła " + link + "  |")
+    print("---------------------------------------------------------------------------------------------")
+
+def restore_validation(password):
+    if password.isspace() or password is None:
+        return False
+    return True
+    
