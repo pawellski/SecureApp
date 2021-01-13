@@ -24,11 +24,14 @@ app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 dao = MariaDBDAO("mariadb")
 
-@app.route('/')
-def index():
-    response = make_response(render_template("index.html"), 200)
+@app.after_request
+def after_request(response):
     response.headers['server'] = None
     return response
+
+@app.route('/')
+def index():
+    return make_response(render_template("index.html"), 200)
 
 @app.route('/restore', methods=[GET, POST])
 def restore():
@@ -37,16 +40,10 @@ def restore():
         if re.match(r"[^@]+@[^@]+\.[^@]+", email):
             if dao.email_exists(email) == 1:
                 send_restore_password_message(email)
-                response = make_response({"send_message": "Accept"}, 200)
-                response.headers['server'] = None
-                return response
-        response = make_response({"send_message": "Reject"}, 400)
-        response.headers['server'] = None
-        return response
+                return make_response({"send_message": "Accept"}, 200)
+        return make_response({"send_message": "Reject"}, 400)
     else:
-        response = make_response(render_template("restore.html"), 200)
-        response.headers['server'] = None
-        return response
+        return make_response(render_template("restore.html"), 200)
 
 @app.route('/signin', methods=[POST])
 def signin():
@@ -67,17 +64,11 @@ def signin():
                     if dao.check_login_and_ip(login, request.remote_addr) == 0:
                         check_ip_address(login, request.remote_addr)
                     session['username'] = login
-                    response = make_response({"login": "Accept"}, 200)
-                    response.headers['server'] = None
-                    return response
+                    return make_response({"login": "Accept"}, 200)
         increment_incorrect_logging(request.remote_addr)
-        response = make_response({"login": "Reject"}, 401)
-        response.headers['server'] = None
-        return response
+        return make_response({"login": "Reject"}, 401)
     else:
-        response = make_response({"login": "Blocked"}, 401)
-        response.headers['server'] = None
-        return response
+        return make_response({"login": "Blocked"}, 401)
 
 
 @app.route('/signup', methods=[POST])
@@ -93,14 +84,10 @@ def signup():
         dao.set_login_and_ip(form.get("login"), request.remote_addr)
         del salt
         del hashed_password
-        response = make_response({"registration": "Accept"}, 201)
-        response.headers['server'] = None
-        return response
+        return make_response({"registration": "Accept"}, 201)
     else:
         errors["registration"] = "Reject"
-        response = make_response(errors, 400)
-        response.headers['server'] = None
-        return response
+        return make_response(errors, 400)
 
 @app.route('/add_note', methods=[POST])
 def add_note():
@@ -114,20 +101,14 @@ def add_note():
         errors = add_note_validation(title, note)
         if len(errors) > 0:
             errors["add_note"] = "Reject"
-            response = make_response(errors, 400)
-            response.headers['server'] = None
-            return response
+            return make_response(errors, 400)
         
         if dao.title_exists(login, title) == 1:
-            response = make_response({"add_note": "Already title exists."}, 409)
-            response.headers['server'] = None
-            return response
+            return make_response({"add_note": "Already title exists."}, 409)
 
         if form.get("password") is None:
             dao.set_note(login, title, note)
-            response = make_response({"add_note": "Correct"}, 200)
-            response.headers['server'] = None
-            return response
+            return make_response({"add_note": "Correct"}, 200)
         else:
             salt = bcrypt.gensalt()
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
@@ -138,46 +119,30 @@ def add_note():
             encrypted_note = base64.b64encode(cipher.encrypt(pad(note.encode('utf-8'), 16))).decode('utf-8')
             extra = base64.b64encode(salt_pbkdf + iv).decode('utf-8')
             dao.set_note(login, title, encrypted_note, hashed_password, extra)
-            response = make_response({"add_note": "Correct"}, 200)
-            response.headers['server'] = None
-            return response
+            return make_response({"add_note": "Correct"}, 200)
     else:
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
 @app.route('/user_notes', methods=[GET])
 def user_notes():
     if 'username' in session.keys():
-        response = make_response(render_template("user_notes.html"), 200)
-        response.headers['server'] = None
-        return response
+        return make_response(render_template("user_notes.html"), 200)
     else:
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
 @app.route('/user_add', methods=[GET])
 def user_add():
     if 'username' in session.keys():
-        response = make_response(render_template("user_add.html"), 200)
-        response.headers['server'] = None
-        return response
+        return make_response(render_template("user_add.html"), 200)
     else:
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
 @app.route('/user_files', methods=[GET])
 def user_files():
     if 'username' in session.keys():
-        response = make_response(render_template("user_files.html"), 200)
-        response.headers['server'] = None
-        return response
+        return make_response(render_template("user_files.html"), 200)
     else:
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
 @app.route('/logout', methods=[GET])
 def logout():
@@ -193,13 +158,9 @@ def notes():
             json_note = {"login": note[0], "title": note[1], "note": note[2]}
             json_notes.append(json_note)
         json_notes2 = json.dumps(json_notes)
-        response = make_response(json_notes2, 200)
-        response.headers['server'] = None
-        return response
+        return make_response(json_notes2, 200)
     else:
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
 @app.route('/encrypted_notes', methods=[GET])
 def encrypted_notes():
@@ -211,13 +172,9 @@ def encrypted_notes():
             json_note = {"title": note[0]}
             json_notes.append(json_note)
         json_notes2 = json.dumps(json_notes)
-        response = make_response(json_notes2, 200)
-        response.headers['server'] = None
-        return response
+        return make_response(json_notes2, 200)
     else:
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
 @app.route('/decrypt_note', methods=[POST])
 def decrypt_note():
@@ -231,9 +188,7 @@ def decrypt_note():
         extra = dao.get_note_extra(login, title)
         
         if db_password is None or extra is None:
-            response = make_response({"get_note": "Not found"}, 404)
-            response.headers['server'] = None
-            return response
+            return make_response({"get_note": "Not found"}, 404)
         
         if bcrypt.checkpw(password.encode('utf-8'), db_password.encode('utf-8')):
             salt = base64.b64decode(extra.encode('utf-8'))[0:16]
@@ -243,48 +198,32 @@ def decrypt_note():
             encrypted_note = dao.get_encrypted_note(login, title)
             prepared_note = base64.b64decode(encrypted_note.encode('utf-8'))
             note = unpad(cipher.decrypt(prepared_note), 16).decode('utf-8')
-            response = make_response({"get_note": "Accept", "note": note}, 200)
-            response.headers['server'] = None
-            return response
+            return make_response({"get_note": "Accept", "note": note}, 200)
         else:
-            response = make_response({"get_note": "Reject"}, 400)
-            response.headers['server'] = None
-            return response
+            return make_response({"get_note": "Reject"}, 400)
     else:
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
 @app.route('/add_file', methods=[POST])
 def add_file():
     if 'username' not in session.keys():
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
     if 'file' not in request.files:
-        response = make_response({"file": "not exists"}, 400)
-        response.headers['server'] = None
-        return response
+        return make_response({"file": "not exists"}, 400)
     
     new_file = request.files["file"]
 
     if new_file.filename == '':
-        response = make_response({"file": "not exists"}, 400)
-        response.headers['server'] = None
-        return response
+        return make_response({"file": "not exists"}, 400)
 
     if allowed_type(new_file.filename) == 1:
-        response = make_response({"file": "wrong type"}, 400)
-        response.headers['server'] = None
-        return response
+        return make_response({"file": "wrong type"}, 400)
 
     login = session['username']
 
     if dao.file_exists(login, new_file.filename.split('.')[0]) is not None:
-        response = make_response({"file": "file exists"}, 409)
-        response.headers['server'] = None
-        return response
+        return make_response({"file": "file exists"}, 409)
 
     unique_file_id = uuid.uuid4().hex
     split_filename = new_file.filename.split('.')
@@ -294,65 +233,47 @@ def add_file():
     path_to_file = os.path.join(FILE_PATH, new_file.filename)
     new_file.save(path_to_file)
 
-    response = make_response({"file": "Accept"}, 200)
-    response.headers['server'] = None
-    return response
+    return make_response({"file": "Accept"}, 200)
 
 @app.route('/files', methods=[GET])
 def get_files():
     if 'username' not in session.keys():
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
     login = session['username']
     files = dao.get_files(login)
     files_json = json.dumps(list(files))
-    response = make_response(files_json, 200)
-    response.headers['server'] = None
-    return response
+    return make_response(files_json, 200)
 
 @app.route('/download_file/<string:file>', methods=[GET])
 def download_file(file):
     if 'username' not in session.keys():
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
     login = session['username']
     filename = dao.get_file_to_download(login, file)
 
     if filename is None:
-        response = make_response({"file": "not exisits"}, 404)
-        response.headers['server'] = None
-        return response
+        return make_response({"file": "not exisits"}, 404)
     
     file_name_to_send = file + '.' + filename.split('.')[1]
     filepath = os.path.join(FILE_PATH_TO_DOWNLOAD, filename)
-
-    if not os.path.exists(filepath):
-        response = make_response({"file": "not exisits"}, 404)
-        response.headers['server'] = None
-        return response
 
     try:
         return send_file(filepath, as_attachment=True, attachment_filename=file_name_to_send)
     except Exception as e:
         print(e)
+        return make_response({"file": "not exisits"}, 404)
 
 @app.route('/restore_password/<string:restore_id>', methods=[GET, POST])
 def restore_password(restore_id):
     if not restore_id.isalnum() or dao.check_restore_id_validity(restore_id) == 1:
-        response = make_response("Unauthorized", 401)
-        response.headers['server'] = None
-        return response
+        return make_response("Unauthorized", 401)
 
     if request.method == POST:
         form = request.form
         if restore_validation(form.get('password')) is False:
-            response = make_response({"password": "incorrect"}, 400)
-            response.headers['server'] = None
-            return response
+            return make_response({"password": "incorrect"}, 400)
         
         hashed_password = hashlib.sha256((form.get("password") + os.environ.get(PEPPER)).encode('utf-8'))
         hashed_password = hashlib.sha256(hashed_password.hexdigest().encode('utf-8'))
@@ -361,13 +282,9 @@ def restore_password(restore_id):
         dao.update_password(restore_id, hashed_password)
         del salt
         del hashed_password
-        response = make_response("correct", 200)
-        response.headers['server'] = None
-        return response   
-    else:     
-        response = make_response(render_template("restore_password.html"), 200)
-        response.headers['server'] = None
-        return response
+        return make_response("correct", 200)
+    else:
+        return make_response(render_template("restore_password.html"), 200)
 
 def signup_validation(form):
     errors = {}
@@ -446,4 +363,3 @@ def restore_validation(password):
     if password.isspace() or password is None:
         return False
     return True
-    
