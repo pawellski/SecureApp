@@ -174,15 +174,12 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
                 tableBodyElem.appendChild(row);
             }
-
             tableElem.appendChild(tableHeadElem);
             tableElem.appendChild(tableBodyElem);
             privateNotesDiv.appendChild(tableElem);
 
-
-
         } else {
-            disableFieldss();
+            disableFields();
             let lackOfPrivateNotesElem = document.createElement('h5');
             let lackOfPrivateNotesContent = document.createTextNode("Brak prywatnych notatek!");
             lackOfPrivateNotesElem.setAttribute("id", "lackOfPrivateNotes");
@@ -221,11 +218,13 @@ document.addEventListener('DOMContentLoaded', function (event) {
         }
     }
 
-    function disableFieldss() {
+    function disableFields() {
         let titleField = document.getElementById("title-decrypt-note");
         let passwordField = document.getElementById("password-decrypt-note");
+        let submiButton = document.getElementById("decrypt-note-button");
         titleField.disabled = true;
         passwordField.disabled = true;
+        submiButton.disabled = true;
     }
 
 });

@@ -120,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
     }
 
     function displayLoginInformation(response) {
-        console.log(response.login)
         if (response.login == "Accept") {
             window.location.href = "/user_notes";
         } else if(response.login == "Reject" || response.login == "Blocked") {
@@ -132,25 +131,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
                 warningText = document.createTextNode("Twoje próby logowania zostały zablokowane. Spróbuj za jakiś czas.");
             }
             let loginAlert = document.createElement("div");
-            loginAlert.setAttribute("class", "alert alert-danger");
-            loginAlert.setAttribute("role", "alert");
-            loginAlert.appendChild(warningText);
-            alertLoginDiv.appendChild(loginAlert);
-        } else {
-            console.error("Response status code: " + response.status);
-            throw "Unexpected response status: " + response.status;
-        }
-    }
-
-    function checkLoginResponse(response) {
-        status = response.status;
-
-        if (status == HTTP_STATUS.OK) {
-            window.location.href = "/user_notes";
-        } else if(status == HTTP_STATUS.UNAUTHORIZED) {
-            alertLoginDiv.innerHTML = "";
-            let loginAlert = document.createElement("div");
-            let warningText = document.createTextNode("Niepoprawne dane.");
             loginAlert.setAttribute("class", "alert alert-danger");
             loginAlert.setAttribute("role", "alert");
             loginAlert.appendChild(warningText);
@@ -266,12 +246,12 @@ document.addEventListener('DOMContentLoaded', function (event) {
         let password = document.getElementById(PASSWORD_ID);
         
         if (password.value.length < 8) {
-            let loginAlert = document.createElement("div");
+            let passwordAlert = document.createElement("div");
             let warningText = document.createTextNode("Hasło musi składać się przynajmniej z 8 znaków.");
-            loginAlert.setAttribute("class", "alert alert-danger");
-            loginAlert.setAttribute("role", "alert");
-            loginAlert.appendChild(warningText);
-            alertDiv.appendChild(loginAlert);
+            passwordAlert.setAttribute("class", "alert alert-danger");
+            passwordAlert.setAttribute("role", "alert");
+            passwordAlert.appendChild(warningText);
+            alertDiv.appendChild(passwordAlert);
             return false;
         }
 
@@ -279,12 +259,12 @@ document.addEventListener('DOMContentLoaded', function (event) {
             && password.value.match(/[0-9]+/) && password.value.match(/[!@#$%^&*]+/)) {
             return true;
         } else {
-            let loginAlert = document.createElement("div");
+            let passwordAlert = document.createElement("div");
             let warningText = document.createTextNode("Hasło musi zawierać dużą i małą literę, cyfrę oraz znak specjalny.");
-            loginAlert.setAttribute("class", "alert alert-danger");
-            loginAlert.setAttribute("role", "alert");
-            loginAlert.appendChild(warningText);
-            alertDiv.appendChild(loginAlert);
+            passwordAlert.setAttribute("class", "alert alert-danger");
+            passwordAlert.setAttribute("role", "alert");
+            passwordAlert.appendChild(warningText);
+            passwordDiv.appendChild(loginAlert);
             return false;
         }
 
