@@ -182,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
 
         } else {
+            disableFieldss();
             let lackOfPrivateNotesElem = document.createElement('h5');
             let lackOfPrivateNotesContent = document.createTextNode("Brak prywatnych notatek!");
             lackOfPrivateNotesElem.setAttribute("id", "lackOfPrivateNotes");
@@ -218,6 +219,13 @@ document.addEventListener('DOMContentLoaded', function (event) {
             alert.appendChild(text);
             alertDiv.appendChild(alert);
         }
+    }
+
+    function disableFieldss() {
+        let titleField = document.getElementById("title-decrypt-note");
+        let passwordField = document.getElementById("password-decrypt-note");
+        titleField.disabled = true;
+        passwordField.disabled = true;
     }
 
 });

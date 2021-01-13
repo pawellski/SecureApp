@@ -122,3 +122,7 @@ table {
 #h3-file {
     padding-top: 80px;
 }
+
+#downloadCol {
+    width: 20%;
+}
