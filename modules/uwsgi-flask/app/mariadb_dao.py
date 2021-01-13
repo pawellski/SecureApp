@@ -196,28 +196,27 @@ class MariaDBDAO:
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
     
-    def set_note(self, login, title, note, password=None, extra=None):
+    def set_note(self, login, title, note, extra=None):
         try:
-            if password is None and extra is None:
-                self.sql.execute(f"INSERT INTO posts (login, title, note, password, extra) VALUES ('{login}', '{title}', '{note}', null, null)")    
+            if extra is None:
+                self.sql.execute(f"INSERT INTO posts (login, title, note, extra) VALUES ('{login}', '{title}', '{note}', null)")    
             else:
-                self.sql.execute(f"INSERT INTO posts (login, title, note, password, extra) VALUES ('{login}', '{title}', '{note}', '{password}', '{extra}')")
+                self.sql.execute(f"INSERT INTO posts (login, title, note, extra) VALUES ('{login}', '{title}', '{note}', '{extra}')")
             self.db.commit()
-            self.sql.execute("SELECT id, login, title, note, password, extra FROM  posts;")
+            self.sql.execute("SELECT id, login, title, note, extra FROM  posts;")
             print("SET NOTE")
-            for x, y, z, v, o, p, in self.sql:
+            for x, y, z, v, o, in self.sql:
                 print(x)
                 print(y)
                 print(z)
                 print(v)
                 print(o)
-                print(p)
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def get_notes(self):
         try:
-            self.sql.execute("SELECT login, title, note FROM posts WHERE password IS NULL;")
+            self.sql.execute("SELECT login, title, note FROM posts WHERE extra IS NULL;")
             notes = self.sql.fetchall()
             if len(notes) == 0:
                 return []
@@ -227,19 +226,11 @@ class MariaDBDAO:
 
     def get_tiltes_encrypted_notes(self, login):
         try:
-            self.sql.execute(f"SELECT title FROM posts WHERE login = '{login}' AND password IS NOT NULL;")
+            self.sql.execute(f"SELECT title FROM posts WHERE login = '{login}' AND extra IS NOT NULL;")
             encrypted_notes = self.sql.fetchall()
             if len(encrypted_notes) == 0:
                 return []
             return encrypted_notes
-        except mariadb.Error as error:
-            flask.flash(f"Database error: {error}")
-    
-    def get_note_password(self, login, title):
-        try:
-            self.sql.execute(f"SELECT password FROM posts WHERE title = '{title}' AND login = '{login}'")
-            password, = self.sql.fetchone() or (None,)
-            return password
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 

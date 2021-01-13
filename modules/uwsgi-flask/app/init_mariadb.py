@@ -25,7 +25,7 @@ sql.execute("CREATE TABLE assignment_ip (login VARCHAR(32), ip VARCHAR(32));")
 sql.execute("DELETE FROM assignment_ip;")
 
 sql.execute("DROP TABLE IF EXISTS posts;")
-sql.execute("CREATE TABLE posts (id INT AUTO_INCREMENT, login VARCHAR(32), title VARCHAR(64), note VARCHAR(1024), password VARCHAR(128), extra VARCHAR(128), PRIMARY KEY(id));")
+sql.execute("CREATE TABLE posts (id INT AUTO_INCREMENT, login VARCHAR(32), title VARCHAR(64), note VARCHAR(1024), extra VARCHAR(128), PRIMARY KEY(id));")
 sql.execute("DELETE FROM posts;")
 
 sql.execute("DROP TABLE IF EXISTS files;")

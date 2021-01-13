@@ -110,15 +110,13 @@ def add_note():
             dao.set_note(login, title, note)
             return make_response({"add_note": "Correct"}, 200)
         else:
-            salt = bcrypt.gensalt()
-            hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
             salt_pbkdf = get_random_bytes(16)
             key = PBKDF2(password.encode('utf-8'), salt_pbkdf, dkLen=32)
             iv = get_random_bytes(16)
             cipher = AES.new(key, AES.MODE_CBC, iv)
             encrypted_note = base64.b64encode(cipher.encrypt(pad(note.encode('utf-8'), 16))).decode('utf-8')
             extra = base64.b64encode(salt_pbkdf + iv).decode('utf-8')
-            dao.set_note(login, title, encrypted_note, hashed_password, extra)
+            dao.set_note(login, title, encrypted_note, extra)
             return make_response({"add_note": "Correct"}, 200)
     else:
         return make_response("Unauthorized", 401)
@@ -184,22 +182,21 @@ def decrypt_note():
         title = form.get("title")
         password = form.get("password")
 
-        db_password = dao.get_note_password(login, title)
         extra = dao.get_note_extra(login, title)
         
-        if db_password is None or extra is None:
+        if extra is None:
             return make_response({"get_note": "Not found"}, 404)
         
-        if bcrypt.checkpw(password.encode('utf-8'), db_password.encode('utf-8')):
-            salt = base64.b64decode(extra.encode('utf-8'))[0:16]
-            iv = base64.b64decode(extra.encode('utf-8'))[16:32]
-            key = PBKDF2(password.encode('utf-8'), salt, dkLen=32)
-            cipher = AES.new(key, AES.MODE_CBC, iv)
+        salt = base64.b64decode(extra.encode('utf-8'))[0:16]
+        iv = base64.b64decode(extra.encode('utf-8'))[16:32]
+        key = PBKDF2(password.encode('utf-8'), salt, dkLen=32)
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        try:
             encrypted_note = dao.get_encrypted_note(login, title)
             prepared_note = base64.b64decode(encrypted_note.encode('utf-8'))
             note = unpad(cipher.decrypt(prepared_note), 16).decode('utf-8')
             return make_response({"get_note": "Accept", "note": note}, 200)
-        else:
+        except Exception:
             return make_response({"get_note": "Reject"}, 400)
     else:
         return make_response("Unauthorized", 401)
