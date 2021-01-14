@@ -312,3 +312,15 @@ class MariaDBDAO:
             self.db.commit()
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
+
+    def delete_all_ip(self, restore_id, ip):
+        try:
+            self.sql.execute(f"SELECT email FROM restore_password WHERE restore_id = '{restore_id}'")
+            email, = self.sql.fetchone()
+            self.sql.execute(f"SELECT login FROM user WHERE email = '{email}'")
+            login, = self.sql.fetchone()
+            self.sql.execute(f"DELETE FROM assignment_ip WHERE login = '{login}'")
+            self.db.commit()
+            return login
+        except mariadb.Error as error:
+            flask.flash(f"Database error: {error}")

@@ -62,7 +62,7 @@ def signin():
                     del password_db
                     dao.clear_host(request.remote_addr)
                     if dao.check_login_and_ip(login, request.remote_addr) == 0:
-                        check_ip_address(login, request.remote_addr)
+                        set_ip_address(login, request.remote_addr)
                     session['username'] = login
                     return make_response({"login": "Accept"}, 200)
         increment_incorrect_logging(request.remote_addr)
@@ -272,6 +272,7 @@ def restore_password(restore_id):
         if restore_validation(form.get('password')) is False:
             return make_response({"password": "incorrect"}, 400)
         
+        ip = request.remote_addr
         hashed_password = hashlib.sha256((form.get("password") + os.environ.get(PEPPER)).encode('utf-8'))
         hashed_password = hashlib.sha256(hashed_password.hexdigest().encode('utf-8'))
         salt = bcrypt.gensalt()
@@ -279,6 +280,9 @@ def restore_password(restore_id):
         dao.update_password(restore_id, hashed_password)
         del salt
         del hashed_password
+        
+        login = dao.delete_all_ip(restore_id, ip)
+        dao.set_login_and_ip(login, ip)
         return make_response("correct", 200)
     else:
         return make_response(render_template("restore_password.html"), 200)
@@ -321,7 +325,7 @@ def increment_incorrect_logging(ip):
     else:
         dao.set_host_attempt(ip, attempt)
 
-def check_ip_address(login, ip):
+def set_ip_address(login, ip):
     dao.set_login_and_ip(login, ip)
     email = dao.get_user_email(login)
     print("------------------------------------------------------------------------")
