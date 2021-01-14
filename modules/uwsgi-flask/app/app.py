@@ -9,6 +9,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Cipher import AES
 import base64, json, uuid
+from datetime import timedelta
 
 GET = "GET"
 POST = "POST"
@@ -22,6 +23,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get(APP_SECRET)
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
 dao = MariaDBDAO("mariadb")
 
 @app.after_request
@@ -68,6 +70,7 @@ def signin():
                     if dao.check_login_and_ip(login, request.remote_addr) == 0:
                         set_ip_address(login, request.remote_addr)
                     session['username'] = login
+                    session.permanent = True
                     return make_response({"login": "Accept"}, 200)
         increment_incorrect_logging(request.remote_addr)
         return make_response({"login": "Reject"}, 401)
@@ -152,6 +155,7 @@ def user_files():
 @app.route('/logout', methods=[GET])
 def logout():
     session.pop('username', None)
+    session.clear()
     return redirect("/")
 
 @app.route('/notes', methods=[GET])
