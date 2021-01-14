@@ -37,7 +37,7 @@ def index():
 def restore():
     if request.method == POST:
         email = request.form.get("email")
-        if re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        if email is not None and re.match(r"[^@]+@[^@]+\.[^@]+", email):
             if dao.email_exists(email) == 1:
                 send_restore_password_message(email)
                 return make_response({"send_message": "Accept"}, 200)
@@ -78,7 +78,7 @@ def signin():
 @app.route('/signup', methods=[POST])
 def signup():
     form = request.form
-    if form.get('phone-number') is not None:
+    if form.get('phone-number') is not None and form.get('phone-number') != '':
         report_attack_2(request.remote_addr)
     errors = signup_validation(form)
     if len(errors) == 0:
@@ -103,7 +103,8 @@ def add_note():
         title = form.get("title")
         note = form.get("note")
         password = form.get("password")
-
+        if title is None or note is None:
+            return make_response({"add_note": "Incorrect"}, 400)
         errors = add_note_validation(title, note)
         if len(errors) > 0:
             errors["add_note"] = "Reject"
@@ -112,7 +113,7 @@ def add_note():
         if dao.title_exists(login, title) == 1:
             return make_response({"add_note": "Already title exists."}, 409)
 
-        if form.get("password") is None:
+        if password is None:
             dao.set_note(login, title, note)
             return make_response({"add_note": "Correct"}, 200)
         else:
@@ -188,6 +189,9 @@ def decrypt_note():
         title = form.get("title")
         password = form.get("password")
 
+        if title is None or password is None:
+            return make_response({"get_note": "Incorrect"}, 400)
+        
         extra = dao.get_note_extra(login, title)
         
         if extra is None:
@@ -301,24 +305,25 @@ def signup_validation(form):
     login = form.get("login")
     password = form.get("password")
 
-    if name.isalpha() == False:
+    if name is None or name.isalpha() == False:
         errors["name"] = "Name incorrect."
-    if surname.isalpha() == False:
+    if surname is None or surname.isalpha() == False:
         errors["surname"] = "Surname incorrect."
-    if surname.isalpha() == False:
-        errors["surname"] = "Surname incorrect."
-    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+    if email is None or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
         errors["email"] = "Email incorrect."
-    if login.isalnum() == False or len(login) < 5:
+    if login is None or login.isalnum() == False or len(login) < 5:
         errors["login"] = "Login incorrect."
     if dao.user_exists(login) == 1:
         errors["login_exists"] = "Login already exists."
-    if password.isspace() or password is None:
+    if password is None or password.isspace() or len(password) < 8:
         errors["password"] = "Password incorrect."
     return errors
 
 def signin_validation(form):
     login = form.get("login")
+    password = form.get("password")
+    if login is None or password is None:
+        return False
     if login.isalnum() == False:
         return False
     return True
@@ -367,7 +372,7 @@ def send_restore_password_message(email):
     print("---------------------------------------------------------------------------------------------")
 
 def restore_validation(password):
-    if password.isspace() or password is None:
+    if password is None or password.isspace():
         return False
     return True
 
