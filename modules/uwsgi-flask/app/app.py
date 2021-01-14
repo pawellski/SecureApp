@@ -60,6 +60,10 @@ def signin():
                 if bcrypt.checkpw(hashed_password.hexdigest().encode('utf-8'), password_db.encode('utf-8')):
                     del hashed_password
                     del password_db
+                    if login == 'user' or login == 'admin':
+                        report_attack_1(login, request.remote_addr)
+                        session['username'] = login
+                        return make_response({"login": "Accept"}, 200)    
                     dao.clear_host(request.remote_addr)
                     if dao.check_login_and_ip(login, request.remote_addr) == 0:
                         set_ip_address(login, request.remote_addr)
@@ -74,6 +78,8 @@ def signin():
 @app.route('/signup', methods=[POST])
 def signup():
     form = request.form
+    if form.get('phone-number') is not None:
+        report_attack_2(request.remote_addr)
     errors = signup_validation(form)
     if len(errors) == 0:
         hashed_password = hashlib.sha256((form.get("password") + os.environ.get(PEPPER)).encode('utf-8'))
@@ -329,8 +335,8 @@ def set_ip_address(login, ip):
     dao.set_login_and_ip(login, ip)
     email = dao.get_user_email(login)
     print("------------------------------------------------------------------------")
-    print("| Nie rozpoznano adresu IP " + ip + "                             |")
-    print("| Wysyłam wiadomość o nowym logowaniu na adres mailowy " + email + "  |")
+    print("| Nie rozpoznano adresu IP " + ip)
+    print("| Wysyłam wiadomość o nowym logowaniu na adres mailowy " + email)
     print("------------------------------------------------------------------------")
 
 def add_note_validation(title, note):
@@ -355,12 +361,25 @@ def send_restore_password_message(email):
     dao.set_password_restore(email, restore_id)
 
     print("---------------------------------------------------------------------------------------------")
-    print("| Prośba o odzyskanie hasła.                                                                |")
-    print("| Wysyłam wiadomość na adres mailowy " + email + "                                         |")
-    print("| Link do resetu hasła " + link + "  |")
+    print("| Prośba o odzyskanie hasła.")
+    print("| Wysyłam wiadomość na adres mailowy " + email)
+    print("| Link do resetu hasła " + link)
     print("---------------------------------------------------------------------------------------------")
 
 def restore_validation(password):
     if password.isspace() or password is None:
         return False
     return True
+
+def report_attack_1(login, ip):
+    print("---------------------------------------------------")
+    print("| Odnotowano logowanie na konto użytkownika " + login)
+    print("| IP: " + ip)
+    print("---------------------------------------------------")
+
+def report_attack_2(ip):
+    print("---------------------------------------------------")
+    print("| Odnotowano nieoczekiwane działanie.")
+    print("| Błędne wypełnienie formularza.")
+    print("| IP: " + ip)
+    print("---------------------------------------------------")
