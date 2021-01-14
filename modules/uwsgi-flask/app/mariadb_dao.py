@@ -45,15 +45,15 @@ class MariaDBDAO:
 
     def set_new_user(self, login, password, name, surname, email):
         try:
-            self.sql.execute(f"INSERT INTO user (login, password, name, surname, email) VALUES ('{login}', '{password}', '{name}', '{surname}', '{email}')")
+            self.sql.execute("INSERT INTO user (login, password, name, surname, email) VALUES (%(login)s, %(password)s, %(name)s, %(surname)s, %(email)s)", 
+                {'login': login, 'password': password, 'name': name, 'surname': surname, 'email': email})
             self.db.commit()
-            self.sql.execute("SELECT login, password FROM user;")
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def user_exists(self, login):
         try:
-            self.sql.execute(f"SELECT EXISTS (SELECT login FROM user WHERE login = '{login}')")
+            self.sql.execute("SELECT EXISTS (SELECT login FROM user WHERE login = %(login)s)", {'login': login})
             exists, = self.sql.fetchone()
             return exists
         except mariadb.Error as error:
@@ -61,7 +61,7 @@ class MariaDBDAO:
 
     def get_user_password(self, login):
         try:
-            self.sql.execute(f"SELECT password FROM user WHERE login = '{login}'")
+            self.sql.execute("SELECT password FROM user WHERE login = %(login)s", {'login': login})
             password, = self.sql.fetchone() or (None,)
             return password
         except mariadb.Error as error:
@@ -69,7 +69,7 @@ class MariaDBDAO:
     
     def get_host_attempt(self, ip):
         try:
-            self.sql.execute(f"SELECT attempt FROM host WHERE ip = '{ip}'")
+            self.sql.execute("SELECT attempt FROM host WHERE ip = %(ip)s", {'ip': ip})
             attempt, = self.sql.fetchone()
             return attempt
         except mariadb.Error as error:
@@ -77,104 +77,64 @@ class MariaDBDAO:
 
     def set_host_attempt(self, ip, attempt):
         try:
-            self.sql.execute(f"UPDATE host SET attempt = {attempt} WHERE  ip = '{ip}'")
+            self.sql.execute("UPDATE host SET attempt = %(attempt)s WHERE  ip = %(ip)s", {'attempt': attempt, 'ip': ip})
             self.db.commit()
-            self.sql.execute("SELECT ip, attempt, expire_block FROM host;")
-            print("SET HOST ATTEMPT")
-            for x, y, z, in self.sql:
-                print(x)
-                print(y)
-                print(z)
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def set_host_block(self, ip):
         try:
-            self.sql.execute(f"UPDATE host SET attempt = 5, expire_block = (SELECT NOW() + INTERVAL 1 MINUTE) WHERE  ip = '{ip}'")
+            self.sql.execute("UPDATE host SET attempt = 5, expire_block = (SELECT NOW() + INTERVAL 1 MINUTE) WHERE  ip = %(ip)s", {'ip': ip})
             self.db.commit()
-            self.sql.execute("SELECT ip, attempt, expire_block FROM host;")
-            print("SET HOST BLOCK")
-            for x, y, z, in self.sql:
-                print(x)
-                print(y)
-                print(z)
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def block_exists(self, ip):
         try:
-            self.sql.execute(f"SELECT EXISTS (SELECT ip FROM host WHERE ip = '{ip}')")
+            self.sql.execute("SELECT EXISTS (SELECT ip FROM host WHERE ip = %(ip)s)", {'ip': ip})
             ip_exists, = self.sql.fetchone()
-            print(ip_exists)
             if ip_exists == 0:
-                self.sql.execute(f"INSERT INTO host (ip, attempt, expire_block) VALUES ('{ip}', 0, null)")
+                self.sql.execute("INSERT INTO host (ip, attempt, expire_block) VALUES (%(ip)s, 0, null)", {'ip': ip})
                 self.db.commit()
-                print("JEST JUZ NOWY REKORD")
                 return 0
-            self.sql.execute(f"SELECT expire_block FROM host WHERE ip = '{ip}'")
+            self.sql.execute("SELECT expire_block FROM host WHERE ip = %(ip)s", {'ip': ip})
             expire_block, = self.sql.fetchone() or (None,)
-            print(expire_block)
             if expire_block is not None:
-                print("IS NOT NULL EB")
-                self.sql.execute(f"SELECT CASE WHEN (SELECT NOW()) < (SELECT expire_block FROM host WHERE ip = '{ip}') THEN 1 ELSE 0 END")
+                self.sql.execute("SELECT CASE WHEN (SELECT NOW()) < (SELECT expire_block FROM host WHERE ip = %(ip)s) THEN 1 ELSE 0 END", {'ip': ip})
                 exists, = self.sql.fetchone()
-                print(exists)
                 if exists == 0:
-                    self.sql.execute(f"UPDATE host SET attempt = 0, expire_block = null WHERE  ip = '{ip}'")
+                    self.sql.execute("UPDATE host SET attempt = 0, expire_block = null WHERE  ip = %(ip)s", {'ip': ip})
             else:
                 exists = 0
-
-            self.sql.execute("SELECT ip, attempt, expire_block FROM host;")
-            print("BLOCK EXISTS")
-            for x, y, z, in self.sql:
-                print(x)
-                print(y)
-                print(z)
             return exists
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def clear_host(self, ip):
         try:
-            self.sql.execute(f"UPDATE host SET attempt = 0, expire_block = null WHERE  ip = '{ip}'")
+            self.sql.execute("UPDATE host SET attempt = 0, expire_block = null WHERE  ip = %(ip)s", {'ip': ip})
             self.db.commit()
-            self.sql.execute("SELECT ip, attempt, expire_block FROM host;")
-            print("CLEAR HOST")
-            for x, y, z, in self.sql:
-                print(x)
-                print(y)
-                print(z)
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def set_login_and_ip(self, login, ip):
         try:
-            self.sql.execute(f"INSERT INTO assignment_ip (login, ip) VALUES ('{login}', '{ip}')")
+            self.sql.execute("INSERT INTO assignment_ip (login, ip) VALUES (%(login)s, %(ip)s)", {'login': login, 'ip': ip})
             self.db.commit()
-            self.sql.execute("SELECT login, ip FROM assignment_ip;")
-            print("SET LOGIN AND IP")
-            for x, y, in self.sql:
-                print(x)
-                print(y)
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def check_login_and_ip(self, login, ip):
         try:
-            self.sql.execute(f"SELECT EXISTS (SELECT ip FROM assignment_ip WHERE ip = '{ip}' AND login = '{login}')")
+            self.sql.execute("SELECT EXISTS (SELECT ip FROM assignment_ip WHERE ip = %(ip)s AND login = %(login)s)", {'login': login, 'ip': ip})
             exists, = self.sql.fetchone()
-            print("GET LOGIN AND IP")
-            for x, y, in self.sql:
-                print(x)
-                print(y)
-            print(exists)
             return exists
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def get_user_email(self, login):
         try:
-            self.sql.execute(f"SELECT email FROM user WHERE login = '{login}'")
+            self.sql.execute("SELECT email FROM user WHERE login = %(login)s", {'login': login})
             email, = self.sql.fetchone() or (None,)
             return email
         except mariadb.Error as error:
@@ -182,7 +142,7 @@ class MariaDBDAO:
 
     def email_exists(self, email):
         try:
-            self.sql.execute(f"SELECT EXISTS (SELECT email FROM user WHERE email = '{email}')")
+            self.sql.execute("SELECT EXISTS (SELECT email FROM user WHERE email = %(email)s)", {'email': email})
             exists, = self.sql.fetchone()
             return exists
         except mariadb.Error as error:
@@ -190,7 +150,7 @@ class MariaDBDAO:
 
     def title_exists(self, login, title):
         try:
-            self.sql.execute(f"SELECT EXISTS (SELECT title FROM posts WHERE login = '{login}' AND title = '{title}')")
+            self.sql.execute("SELECT EXISTS (SELECT title FROM posts WHERE login = %(login)s AND title = %(title)s)", {'login': login, 'title': title})
             exists, = self.sql.fetchone()
             return exists
         except mariadb.Error as error:
@@ -199,18 +159,12 @@ class MariaDBDAO:
     def set_note(self, login, title, note, extra=None):
         try:
             if extra is None:
-                self.sql.execute(f"INSERT INTO posts (login, title, note, extra) VALUES ('{login}', '{title}', '{note}', null)")    
+                self.sql.execute("INSERT INTO posts (login, title, note, extra) VALUES (%(login)s, %(title)s, %(note)s, null)",
+                {'login': login, 'title': title, 'note': note})
             else:
-                self.sql.execute(f"INSERT INTO posts (login, title, note, extra) VALUES ('{login}', '{title}', '{note}', '{extra}')")
+                self.sql.execute("INSERT INTO posts (login, title, note, extra) VALUES (%(login)s, %(title)s, %(note)s, %(extra)s)",
+                {'login': login, 'title': title, 'note': note, 'extra': extra})
             self.db.commit()
-            self.sql.execute("SELECT id, login, title, note, extra FROM  posts;")
-            print("SET NOTE")
-            for x, y, z, v, o, in self.sql:
-                print(x)
-                print(y)
-                print(z)
-                print(v)
-                print(o)
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
@@ -226,7 +180,7 @@ class MariaDBDAO:
 
     def get_tiltes_encrypted_notes(self, login):
         try:
-            self.sql.execute(f"SELECT title FROM posts WHERE login = '{login}' AND extra IS NOT NULL;")
+            self.sql.execute("SELECT title FROM posts WHERE login = %(login)s AND extra IS NOT NULL;", {'login': login})
             encrypted_notes = self.sql.fetchall()
             if len(encrypted_notes) == 0:
                 return []
@@ -236,7 +190,7 @@ class MariaDBDAO:
 
     def get_note_extra(self, login, title):
         try:
-            self.sql.execute(f"SELECT extra FROM posts WHERE title = '{title}' AND login = '{login}'")
+            self.sql.execute("SELECT extra FROM posts WHERE login = %(login)s AND title = %(title)s", {'login': login, 'title': title})
             extra, = self.sql.fetchone() or (None,)
             return extra
         except mariadb.Error as error:
@@ -244,7 +198,7 @@ class MariaDBDAO:
 
     def get_encrypted_note(self, login, title):
         try:
-            self.sql.execute(f"SELECT note FROM posts WHERE title = '{title}' AND login = '{login}'")
+            self.sql.execute("SELECT note FROM posts WHERE login = %(login)s AND title = %(title)s", {'login': login, 'title': title})
             note, = self.sql.fetchone() or (None,)
             return note
         except mariadb.Error as error:
@@ -252,14 +206,15 @@ class MariaDBDAO:
 
     def save_file(self, login, filename, file_uuid):
         try:
-            self.sql.execute(f"INSERT INTO files (login, filename, file_uuid) VALUES ('{login}', '{filename}', '{file_uuid}')")
+            self.sql.execute("INSERT INTO files (login, filename, file_uuid) VALUES (%(login)s, %(filename)s, %(file_uuid)s)",
+            {'login': login, 'filename': filename, 'file_uuid': file_uuid})
             self.db.commit()
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def file_exists(self, login, filename):
         try:
-            self.sql.execute(f"SELECT filename FROM files WHERE login = '{login}' AND filename = '{filename}'")
+            self.sql.execute("SELECT filename FROM files WHERE login = %(login)s AND filename = %(filename)s", {'login': login, 'filename': filename})
             filename, = self.sql.fetchone() or (None, )
             return filename
         except mariadb.Error as error:
@@ -268,7 +223,7 @@ class MariaDBDAO:
 
     def get_files(self, login):
         try:
-            self.sql.execute(f"SELECT filename FROM files WHERE login = '{login}'")
+            self.sql.execute("SELECT filename FROM files WHERE login = %(login)s", {'login': login})
             files = self.sql.fetchall()
             if len(files) == 0:
                 return []
@@ -278,7 +233,7 @@ class MariaDBDAO:
 
     def get_file_to_download(self, login, filename):
         try:
-            self.sql.execute(f"SELECT file_uuid FROM files WHERE login = '{login}' AND filename = '{filename}'")
+            self.sql.execute("SELECT file_uuid FROM files WHERE login = %(login)s AND filename = %(filename)s", {'login': login, 'filename': filename})
             file_uuid, = self.sql.fetchone() or (None, )
             return file_uuid
         except mariadb.Error as error:
@@ -286,19 +241,19 @@ class MariaDBDAO:
 
     def set_password_restore(self, email, restore_id):
         try:
-            self.sql.execute(f"SELECT EXISTS (SELECT email, restore_id, expire_date FROM restore_password WHERE email = '{email}')")
+            self.sql.execute("SELECT EXISTS (SELECT email, restore_id, expire_date FROM restore_password WHERE email = %(email)s)", {'email': email})
             exists, = self.sql.fetchone()
             if exists == 0:
-                self.sql.execute(f"INSERT INTO restore_password (email, restore_id, expire_date) VALUES ('{email}', '{restore_id}', (SELECT NOW() + INTERVAL 5 MINUTE))")
+                self.sql.execute("INSERT INTO restore_password (email, restore_id, expire_date) VALUES (%(email)s, %(restore_id)s, (SELECT NOW() + INTERVAL 5 MINUTE))", {'email': email, 'restore_id': restore_id})
             else:
-                self.sql.execute(f"UPDATE restore_password SET restore_id = '{restore_id}', expire_date = (SELECT NOW() + INTERVAL 1 MINUTE) WHERE  email = '{email}'")
+                self.sql.execute("UPDATE restore_password SET restore_id = %(restore_id)s, expire_date = (SELECT NOW() + INTERVAL 1 MINUTE) WHERE  email = %(email)s", {'restore_id': restore_id, 'email': email})
             self.db.commit()
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def check_restore_id_validity(self, restore_id):
         try:
-            self.sql.execute(f"SELECT CASE WHEN (SELECT NOW()) < (SELECT expire_date FROM restore_password WHERE restore_id = '{restore_id}') THEN 0 ELSE 1 END")
+            self.sql.execute("SELECT CASE WHEN (SELECT NOW()) < (SELECT expire_date FROM restore_password WHERE restore_id = %(restore_id)s) THEN 0 ELSE 1 END", {'restore_id': restore_id})
             condition, = self.sql.fetchone()
             return condition
         except mariadb.Error as error:
@@ -306,20 +261,20 @@ class MariaDBDAO:
 
     def update_password(self, restore_id, password):
         try:
-            self.sql.execute(f"SELECT email FROM restore_password WHERE restore_id = '{restore_id}'")
+            self.sql.execute("SELECT email FROM restore_password WHERE restore_id = %(restore_id)s", {'restore_id': restore_id})
             email, = self.sql.fetchone()
-            self.sql.execute(f"UPDATE user SET password = '{password}' WHERE  email = '{email}'")
+            self.sql.execute("UPDATE user SET password = %(password)s WHERE  email = %(email)s", {'password': password, 'email': email})
             self.db.commit()
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
 
     def delete_all_ip(self, restore_id, ip):
         try:
-            self.sql.execute(f"SELECT email FROM restore_password WHERE restore_id = '{restore_id}'")
+            self.sql.execute("SELECT email FROM restore_password WHERE restore_id = %(restore_id)s", {'restore_id': restore_id})
             email, = self.sql.fetchone()
-            self.sql.execute(f"SELECT login FROM user WHERE email = '{email}'")
+            self.sql.execute("SELECT login FROM user WHERE email = %(email)s", {'email': email})
             login, = self.sql.fetchone()
-            self.sql.execute(f"DELETE FROM assignment_ip WHERE login = '{login}'")
+            self.sql.execute("DELETE FROM assignment_ip WHERE login = %(login)s", {'login': login})
             self.db.commit()
             return login
         except mariadb.Error as error:
