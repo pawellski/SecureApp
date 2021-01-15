@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
             passwordAlert.setAttribute("class", "alert alert-danger");
             passwordAlert.setAttribute("role", "alert");
             passwordAlert.appendChild(warningText);
-            alertDiv.appendChild(loginAlert);
+            alertDiv.appendChild(passwordAlert);
             return false;
         }
 
