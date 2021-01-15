@@ -84,7 +84,7 @@ class MariaDBDAO:
 
     def set_host_block(self, ip):
         try:
-            self.sql.execute("UPDATE host SET attempt = 5, expire_block = (SELECT NOW() + INTERVAL 1 MINUTE) WHERE  ip = %(ip)s", {'ip': ip})
+            self.sql.execute("UPDATE host SET attempt = 5, expire_block = (SELECT NOW() + INTERVAL 15 MINUTE) WHERE  ip = %(ip)s", {'ip': ip})
             self.db.commit()
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
@@ -246,7 +246,7 @@ class MariaDBDAO:
             if exists == 0:
                 self.sql.execute("INSERT INTO restore_password (email, restore_id, expire_date) VALUES (%(email)s, %(restore_id)s, (SELECT NOW() + INTERVAL 5 MINUTE))", {'email': email, 'restore_id': restore_id})
             else:
-                self.sql.execute("UPDATE restore_password SET restore_id = %(restore_id)s, expire_date = (SELECT NOW() + INTERVAL 1 MINUTE) WHERE  email = %(email)s", {'restore_id': restore_id, 'email': email})
+                self.sql.execute("UPDATE restore_password SET restore_id = %(restore_id)s, expire_date = (SELECT NOW() + INTERVAL 5 MINUTE) WHERE  email = %(email)s", {'restore_id': restore_id, 'email': email})
             self.db.commit()
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
