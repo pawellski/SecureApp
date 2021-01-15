@@ -143,8 +143,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
     
     passwordField.addEventListener("input", function() {
         let password = passwordField.value;
-        console.log(password);
-        console.log(meter);
         let entropy = countEntropy(password);
         let state = 0;
         if (entropy < 1) {
@@ -322,7 +320,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
             let pi = Object.values(stat)[i]/password.length;
             H = H - pi*Math.log2(pi);
         }
-        console.log(H)
         return H;
     }
 

@@ -134,9 +134,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     }
 
     selectNote.addEventListener("change", function(event) {
-        console.log(selectNote.value);
         let form = new FormData(addNoteForm);
-        console.log(form);
         if (selectNote.value == "Szyfrowana") {
             passwordField.disabled = false;
         } else {

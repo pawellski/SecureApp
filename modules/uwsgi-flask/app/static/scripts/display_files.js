@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
     }
 
     function displayFiles(response) {
-        console.log(response)
         let files = response;
         let filesDiv = document.getElementById("user-files");
         let numberOfFiles = files.length;
