@@ -149,9 +149,9 @@ document.addEventListener('DOMContentLoaded', function (event) {
             state = 0;
         } else if (entropy < 2) {
             state = 1;
-        } else if (entropy < 4) {
+        } else if (entropy < 3) {
             state = 2;
-        } else if (entropy < 6) {
+        } else if (entropy < 4) {
             state = 3;
         } else {
             state = 4;
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
             passwordAlert.setAttribute("class", "alert alert-danger");
             passwordAlert.setAttribute("role", "alert");
             passwordAlert.appendChild(warningText);
-            passwordDiv.appendChild(loginAlert);
+            alertDiv.appendChild(loginAlert);
             return false;
         }
 
@@ -284,23 +284,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
             return false;
         }
 
-    }
-
-    function checkLoginWhileLogging() {
-        let login = document.getElementById(LOGIN_LOGIN_ID);
-        let alphaNumCharacters = /^[a-z0-9]+$/i;
-
-        if (!login.value.match(alphaNumCharacters)) {
-            alertLoginDiv.innerHTML = "";
-            let loginAlert = document.createElement("div");
-            let warningText = document.createTextNode("Niepoprawne dane.");
-            loginAlert.setAttribute("class", "alert alert-danger");
-            loginAlert.setAttribute("role", "alert");
-            loginAlert.appendChild(warningText);
-            alertLoginDiv.appendChild(loginAlert);
-            return false;
-        }
-        return true;
     }
 
     function countEntropy(password) {
