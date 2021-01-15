@@ -10,6 +10,7 @@ from Crypto.Util.Padding import pad, unpad
 from Crypto.Cipher import AES
 import base64, json, uuid
 from datetime import timedelta
+from flask_wtf.csrf import CSRFProtect
 
 GET = "GET"
 POST = "POST"
@@ -21,6 +22,7 @@ FILE_PATH_TO_DOWNLOAD = "files/"
 
 app = Flask(__name__)
 app.secret_key = os.environ.get(APP_SECRET)
+csrf = CSRFProtect(app)
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
@@ -392,3 +394,5 @@ def report_attack_2(ip):
     print("| Błędne wypełnienie formularza.")
     print("| IP: " + ip)
     print("---------------------------------------------------")
+
+    #https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css https://code.jquery.com/jquery-3.3.1.slim.min.js https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js'

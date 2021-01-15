@@ -3,3 +3,4 @@ uwsgi
 mysql-connector
 bcrypt
 pycryptodome
+flask_wtf

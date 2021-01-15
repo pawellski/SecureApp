@@ -59,7 +59,8 @@
                     <input type="text" id="title-decrypt-note" name="title" class="form-control" placeholder="Tytuł" maxlength="60" required>
                 </div>
                 <div class="col">
-                    <input type="password" id="password-decrypt-note" name="password" class="form-control" placeholder="Hasło" required>        
+                    <input type="password" id="password-decrypt-note" name="password" class="form-control" placeholder="Hasło" required>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 </div>
             </div>
             <button id="decrypt-note-button" class="btn btn-lg btn-secondary btn-block" type="submit">Odszyfruj notatkę</button>

@@ -33,6 +33,7 @@
                     <label for="second-password" class="required">Powtórz hasło</label>
                     <input type="password" id="second-password" name="second-password" class="form-control" placeholder="Powtórz hasło" required>
                     <input type="hidden" id="phone_number" name="phone-number" class="form-control">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <meter max="4" id="password-strength-meter"></meter>
                     <p id="password-strength-text"></p>
                     <div class="text-center">
@@ -49,6 +50,7 @@
                     <input type="text" id="login-login" name="login" class="form-control" placeholder="Login" maxlength="25" required>
                     <label for="password" class="required">Hasło</label>
                     <input type="password" id="password-login" name="password" class="form-control" placeholder="Hasło" required>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="text-center">
                         <button id="singin-submit-button" class="btn btn-lg btn-secondary btn-block" type="submit">Zaloguj się</button>    
                     </div>

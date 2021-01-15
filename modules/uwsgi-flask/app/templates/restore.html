@@ -21,6 +21,7 @@
                 <h4 id="h4-restore" class="text-center font-weight-bold">Wprowadź adres e-mail, aby zresetować hasło</h4>
                 <form id="restore-form">
                     <input type="email" id="email" name="email" class="form-control" placeholder="E-mail" maxlength="40" required>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class = "text-center">
                         <button id="restore-password-button" class="btn btn-lg btn-secondary btn-block" type="submit">Resetuj</button>
                     </div>

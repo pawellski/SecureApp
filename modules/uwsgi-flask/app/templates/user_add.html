@@ -61,6 +61,7 @@
                         <option value="Nieszyfrowana">Nieszyfrowana</option>>
                     </select>
                     <input type="password" id="password-note" name="password" class="form-control" placeholder="Hasło" required>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class = "text-center">
                         <button id="add-note-button" class="btn btn-lg btn-secondary btn-block" type="submit">Dodaj notatkę</button>
                     </div>
@@ -74,6 +75,7 @@
                         <input type="file" class="form-control-file" name="file" id="file-input" accept="application/msword, application/vnd.ms-excel, application/vnd.ms-powerpoint,
                         text/plain, application/pdf, image/jpg, image/jpeg, image/png, image/svg, image/gif" required>
                     </div>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class = "text-center">
                         <button id="add-file-button" class="btn btn-lg btn-secondary btn-block" type="submit">Dodaj plik</button>
                     </div>
