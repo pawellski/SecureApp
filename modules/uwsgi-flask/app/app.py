@@ -31,6 +31,11 @@ dao = MariaDBDAO("mariadb")
 @app.after_request
 def after_request(response):
     response.headers['server'] = None
+    response.headers['Content-Security-Policy'] = 'default-src \'self\'; style-src \'self\' https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css \
+    https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css; script-src \'self\' https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js \
+    https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js \
+    https://code.jquery.com/jquery-3.3.1.slim.min.js https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js \
+    https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js; img-src \'self\' data:'
     return response
 
 @app.route('/')
