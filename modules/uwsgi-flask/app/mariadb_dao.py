@@ -84,7 +84,7 @@ class MariaDBDAO:
 
     def set_host_block(self, ip):
         try:
-            self.sql.execute("UPDATE host SET attempt = 5, expire_block = (SELECT NOW() + INTERVAL 15 MINUTE) WHERE  ip = %(ip)s", {'ip': ip})
+            self.sql.execute("UPDATE host SET attempt = 5, expire_block = (SELECT NOW() + INTERVAL 5 MINUTE) WHERE  ip = %(ip)s", {'ip': ip})
             self.db.commit()
         except mariadb.Error as error:
             flask.flash(f"Database error: {error}")
